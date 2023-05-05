@@ -13,7 +13,7 @@
     <ScrollView>
         <VerticalStackLayout
             Spacing="50"
-            Padding="200,0"
+            Padding="20,0"
             VerticalOptions="Start">
 
             <Image

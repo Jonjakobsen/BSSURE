@@ -8,8 +8,9 @@
              xmlns:viewmodel="clr-namespace:Bssure.ViewModels">
 	
 
-    <ScrollView>       
-        <VerticalStackLayout Spacing="50" Padding="200,0" VerticalOptions="Start">
+    <ScrollView>
+        <VerticalStackLayout Spacing="50" 
+            Padding="20,0" VerticalOptions="Start">
             <Image Source="cortrium.png" SemanticProperties.Description="Cortrium logo" HeightRequest="100" HorizontalOptions="Center" Margin="0,50,0,0" />
 
             <Button x:Name="BLE_connect" 
