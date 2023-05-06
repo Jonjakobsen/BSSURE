@@ -23,17 +23,20 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
+        builder.Services.AddSingleton<BLEservice>();
+
+
 		builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<MainPageViewModel>();
         builder.Services.AddSingleton<MeasurementPage>();
         builder.Services.AddSingleton<MeasurementPageViewModel>();
-        builder.Services.AddSingleton<PopUpBLE>();
-       
-        
+        //builder.Services.AddSingleton<PopUpBLE>();
+        //builder.Services.AddSingleton<PopUpBLEViewModel>();
+
+
         //builder.Services.AddSingleton registers a singleton service for the specified type, meaning that only one instance of the service will be created and shared across the entire application.
         //So, builder.Services.AddSingleton<Class>() will register Class as a singleton service in the dependency injection container.
         //Whenever a component requests an instance of AviewmodelClass, the same instance will be returned.
-        builder.Services.AddSingleton<BLEservice>();
 
         
 

@@ -14,9 +14,13 @@ using System.Threading.Tasks;
 
 namespace Bssure.ViewModels
 {
-    public class PopUpBLEViewModel
+    public class PopUpBLEViewModel : BaseViewModel
     {
-        public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates { get; } = new(); //This is the list of devices that is shown in the UI
+        public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates { get { return _listOfDeviceCandidates; } set { 
+                _listOfDeviceCandidates = value;
+            } } //This is the list of devices that is shown in the UI
+
+        private ObservableCollection<DeviceCandidate> _listOfDeviceCandidates = new ObservableCollection<DeviceCandidate>(); //This is the list of devices that is shown in the UI
         public IAsyncRelayCommand ScanNearbyDevicesAsyncCommand { get; } //kræver knap
         public IAsyncRelayCommand CheckBluetoothAvailabilityAsyncCommand { get; } //kræver knap
         public IAsyncRelayCommand ConnectToDeviceCandidateAsyncCommand { get; }
@@ -34,6 +38,7 @@ namespace Bssure.ViewModels
         public PopUpBLEViewModel(BLEservice ble)
         {
             BLEservice= ble;
+            ListOfDeviceCandidates= new ObservableCollection<DeviceCandidate>();
             //Her bindes kommandoer til CommunityMVVM toolkit Asyncrelay, så de kan kaldes asynkront
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
@@ -93,6 +98,12 @@ namespace Bssure.ViewModels
                 {
                     ListOfDeviceCandidates.Add(deviceCandidate); //add the found devices to the global list for the viewmodel
                 }
+                if (ListOfDeviceCandidates.Count==1)
+                {
+                    await ConnectToDeviceCandidateAsync(ListOfDeviceCandidates.First());
+                }
+
+
             }
             catch (Exception ex)
             {
