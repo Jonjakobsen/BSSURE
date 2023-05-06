@@ -98,7 +98,8 @@ namespace Bssure.ViewModels
                 {
                     ListOfDeviceCandidates.Add(deviceCandidate); //add the found devices to the global list for the viewmodel
                 }
-                if (ListOfDeviceCandidates.Count==1)
+                //TODO: Den connecter direkte til det første device den finder, bør laves om så man selv skal udvælge det
+                if (ListOfDeviceCandidates.Count>=1)
                 {
                     await ConnectToDeviceCandidateAsync(ListOfDeviceCandidates.First());
                 }
