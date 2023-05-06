@@ -299,7 +299,7 @@ namespace Bssure.ViewModels
         private async Task sendDataAsync(EKGSampleDTO item)
         {
 
-            await Task.Run(() => RawDataSender.ProcessData(item));
+            await Task.Run(() => RawDataSender.PublishRawData(item));
         }
 
 

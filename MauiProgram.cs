@@ -24,8 +24,9 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
+#if ANDROID
         builder.Services.AddSingleton<BLEservice>();
-
+#endif 
         builder.Services.AddSingleton<IRawDataService, RawDataService>();
         builder.Services.AddSingleton<IMQTTService, MqttService>();
 

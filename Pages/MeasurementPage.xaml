@@ -42,16 +42,42 @@
 
                 <HorizontalStackLayout Spacing="15">
                     <VerticalStackLayout>
-                        <Label Text="MODCsi" Margin="0,10" />
-                        <Entry x:Name="MODCsiEntry"  WidthRequest="80" Text="{Binding MODCsi}"/>
+                        <Label Text="CSI30" Margin="0,10" />
+                        <Entry x:Name="CsiEntry30"  WidthRequest="80" Text="{Binding CSI30}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout>
-                        <Label Text="CSI" Margin="10" />
-                        <Entry x:Name="CSIEntry"  WidthRequest="80" Text="{Binding CSI}" />
+                        <Label Text="CSI50" Margin="0,10" />
+                        <Entry x:Name="CsiEntry50"  WidthRequest="80" Text="{Binding CSI50}"/>
                     </VerticalStackLayout>
 
+                    <VerticalStackLayout>
+                        <Label Text="CSI100" Margin="10" />
+                        <Entry x:Name="CsiEntry100"  WidthRequest="80" Text="{Binding CSI100}" />
+                    </VerticalStackLayout>
 
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Spacing="15">
+                    <VerticalStackLayout>
+                        <Label Text="ModCSI30" Margin="0,10" />
+                        <Entry x:Name="ModCsiEntry30"  WidthRequest="80" Text="{Binding ModCSI30}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout>
+                        <Label Text="ModCSI50" Margin="0,10" />
+                        <Entry x:Name="ModCsiEntry50"  WidthRequest="80" Text="{Binding ModCSI50}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout>
+                        <Label Text="ModCSI100" Margin="10" />
+                        <Entry x:Name="ModCsiEntry100"  WidthRequest="80" Text="{Binding ModCSI100}" />
+                    </VerticalStackLayout>
+
+                </HorizontalStackLayout>
+
+
+                <HorizontalStackLayout Spacing="15">
 
                     <VerticalStackLayout>
                         <Label Text="RMS" Margin="10" />
@@ -60,16 +86,27 @@
 
 
                 </HorizontalStackLayout>
-                <Button Text="Set to default values" WidthRequest="175" HeightRequest="40"
-                        Command="{Binding SetDefaultValuesCommand}"    
-                        BackgroundColor="Honeydew"
+
+                <Button Text="Save all parameters" WidthRequest="175" HeightRequest="40"
+                            Command="{Binding SaveAllParametersCommand}"    
+                            BackgroundColor="Honeydew"
                             TextColor="Black"
                             BorderColor="Black"
-                        HorizontalOptions="Start"
-                           
-                    x:Name="ResetButton"
-                        />
-                    <!--Clicked="OnResetButtonClicked"-->
+                            HorizontalOptions="Start"
+                            x:Name="SaveButton"
+                        IsVisible="{Binding Changed, Mode=TwoWay}"
+                />
+
+
+
+                <Button Text="Set to default values" WidthRequest="175" HeightRequest="40"
+                            Command="{Binding SetDefaultValuesCommand}"    
+                            BackgroundColor="Honeydew"
+                            TextColor="Black"
+                            BorderColor="Black"
+                            HorizontalOptions="Start"
+                            x:Name="ResetButton"
+                />
 
 
 

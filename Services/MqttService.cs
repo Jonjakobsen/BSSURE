@@ -15,7 +15,7 @@ namespace Bssure.Services
 {
     public interface IRawDataService
     {
-        void ProcessData(EKGSampleDTO ekgSample);
+        void PublishRawData(EKGSampleDTO ekgSample);
     }
 
     public class RawDataService : IRawDataService
@@ -26,10 +26,11 @@ namespace Bssure.Services
         {
             mqttService = MQTTManager;
         }
-        public void ProcessData(EKGSampleDTO ekgSample)
+        public void PublishRawData(EKGSampleDTO ekgSample)
         {
             mqttService.Publish_RawData(ekgSample);
         }
+
     }
 
 
@@ -39,6 +40,9 @@ namespace Bssure.Services
         void OpenConncetion();
         void CloseConncetion();
         void Publish_RawData(EKGSampleDTO data);
+
+        void PublishMetaData(UserDataDTO data);
+
         void StartSending();
         void StopSending();
 
@@ -68,8 +72,6 @@ namespace Bssure.Services
             OpenConncetion();
             //Minor change
         }
-
-
 
 
         public void Publish(string topic, byte[] data)
@@ -157,6 +159,15 @@ namespace Bssure.Services
             }
         }
 
+        public void PublishMetaData(UserDataDTO data)
+        {
+            if (Client.IsConnected)
+            {
+                var serialData = JsonSerializer.Serialize<UserDataDTO>(data);
+                client.Publish(Topics.Topic_Series_FromBSSURE, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
+            }
+        }
+
         public void StartSending()
         {
             Started = true;
@@ -166,6 +177,8 @@ namespace Bssure.Services
         {
             Started = false;
         }
+
+        
     }
 
 
@@ -177,6 +190,7 @@ namespace Bssure.Services
             Topic_Status_BSSURE = "ECG/Status/BSSURE",
 
 
+            Topic_UserData = "ECG/Userdata/NewUser",
             Topic_Series_FromBSSURE = "ECG/Series/BSSURE2CSSURE",
             Topic_Series_TempToBSSURE = "ECG/Temp/ToBSSURE";
     }

@@ -26,9 +26,22 @@ namespace Bssure.ViewModels
         #region Fields  
         private readonly string StartText = "Start measurement";
         private readonly string StopText = "Stop measurement";
+
         #endregion
 
         #region Properties
+
+        private bool changed;
+
+        public bool Changed
+        {
+            get { return changed; }
+            set
+            {
+                //changed = value;
+                SetProperty(ref changed, value);
+            }
+        }
 
 
         private string _StartBtnText;
@@ -37,23 +50,70 @@ namespace Bssure.ViewModels
             get => _StartBtnText;
             set => SetProperty(ref _StartBtnText, value);
         }
+        public RelayCommand SaveAllParametersCommand { get; }
 
-
-        private string _CSIEntry;
-        public string CSI
+        private string _CSI30;
+        public string CSI30
         {
-            get => _CSIEntry;
-            set => SetProperty(ref _CSIEntry, value);
+            get => _CSI30;
+            set
+            {
+                Changed = true;
+                SetProperty(ref _CSI30, value);
+            }
+        }
+        private string _CSI50;
+        public string CSI50
+        {
+            get => _CSI50;
+            set
+            {
+                Changed = true;
+                SetProperty(ref _CSI50, value);
+            }
+        }
+        private string _CSI100;
+        public string CSI100
+        {
+            get => _CSI100;
+            set
+            {
+
+                Changed = true;
+                SetProperty(ref _CSI100, value);
+            }
         }
 
-
-
-        private string _MODCsiEntry;
-
-        public string MODCsi
+        private string _ModCSI30;
+        public string ModCSI30
         {
-            get => _MODCsiEntry;
-            set => SetProperty(ref _MODCsiEntry, value);
+            get => _ModCSI30;
+            set
+            {
+                Changed = true;
+                SetProperty(ref _ModCSI30, value);
+            }
+
+        }
+        private string _ModCSI50;
+        public string ModCSI50
+        {
+            get => _ModCSI50;
+            set
+            {
+                Changed = true;
+                SetProperty(ref _ModCSI50, value);
+            }
+        }
+        private string _ModCSI100;
+        public string ModCSI100
+        {
+            get => _ModCSI100;
+            set
+            {
+                Changed = true;
+                SetProperty(ref _ModCSI100, value);
+            }
         }
 
 
@@ -62,7 +122,11 @@ namespace Bssure.ViewModels
         public string RMS
         {
             get => _RMSEntry;
-            set => SetProperty(ref _RMSEntry, value);
+            set
+            {
+                Changed = true;
+                SetProperty(ref _RMSEntry, value);
+            }
         }
         public IMQTTService MQTTService { get; }
         #endregion
@@ -73,6 +137,8 @@ namespace Bssure.ViewModels
             OnSetDefaultValuesClicked();
             LoadUserValues();
             StartBtnText = StartText;
+
+            SaveAllParametersCommand = new RelayCommand(SaveUserValues);
             StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
@@ -81,41 +147,94 @@ namespace Bssure.ViewModels
 
         private void OnSetDefaultValuesClicked()
         {
-            MODCsi = "1000000";
-            CSI = "1000000";
+            ModCSI30 = "1000000";
+            ModCSI50 = "1000000";
+            ModCSI100 = "1000000";
+            CSI30 = "1000000";
+            CSI50 = "1000000";
+            CSI100 = "1000000";
             RMS = "10000";
         }
 
         private async void LoadUserValues()
         {
-            string MODCsiFromStorage = await SecureStorage.Default.GetAsync("MODCsi");
-
-            if (MODCsiFromStorage == null)
+            try
             {
-                // No value is associated with the key "MODCsi"
-                MODCsi = "1000000"; // Set to default instead
+
+                string ModCSI30FromStorage = await SecureStorage.Default.GetAsync("ModCSI30");
+                string ModCSI50FromStorage = await SecureStorage.Default.GetAsync("ModCSI50");
+                string ModCSI100FromStorage = await SecureStorage.Default.GetAsync("ModCSI100");
+
+                if (ModCSI30FromStorage == null)
+                {
+                    // No value is associated with the key "MODCsi"
+                    ModCSI30 = "1000000"; // Set to default instead
+                    ModCSI50 = "1000000"; // Set to default instead
+                    ModCSI100 = "1000000"; // Set to default instead
+
+                }
+                else
+                {
+                    ModCSI30 = ModCSI30FromStorage;
+                    ModCSI50 = ModCSI50FromStorage;
+                    ModCSI100 = ModCSI100FromStorage;
+                }
+
+                string CSI30FromStorage = await SecureStorage.Default.GetAsync("CSI30");
+                string CSI50FromStorage = await SecureStorage.Default.GetAsync("CSI50");
+                string CSI100FromStorage = await SecureStorage.Default.GetAsync("CSI100");
+
+                if (ModCSI30FromStorage == null)
+                {
+                    // No value is associated with the key "MODCsi"
+                    CSI30 = "1000000"; // Set to default instead
+                    CSI50 = "1000000"; // Set to default instead
+                    CSI100 = "1000000"; // Set to default instead
+
+                }
+                else
+                {
+                    CSI30 = CSI30FromStorage;
+                    CSI50 = CSI50FromStorage;
+                    CSI100 = CSI100FromStorage;
+                }
+
+                string RMSFromStorage = await SecureStorage.Default.GetAsync("RMS");
+
+                if (RMSFromStorage == null)
+                {
+                    // No value is associated with the key "RMS"
+                    RMS = "10000"; // Set to default instead
+                }
+                else RMS = RMSFromStorage;
+                Changed = false;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("error");
+            }
+        }
+
+        private async void SaveUserValues()
+        {
+            try
+            {
+                await SecureStorage.Default.SetAsync("ModCSI30", ModCSI30);
+                await SecureStorage.Default.SetAsync("ModCSI50", ModCSI50);
+                await SecureStorage.Default.SetAsync("ModCSI100", ModCSI100);
+                await SecureStorage.Default.SetAsync("CSI30", CSI30);
+                await SecureStorage.Default.SetAsync("CSI50", CSI50);
+                await SecureStorage.Default.SetAsync("CSI100", CSI100);
+                await SecureStorage.Default.SetAsync("RMS", RMS);
+
+                Changed = false;
+                await Application.Current.MainPage.DisplayAlert("Saved", "You have saved your parameters", "OK");
+            }
+            catch (Exception)
+            {
+                await Application.Current.MainPage.DisplayAlert("Save ERROR", "Could not save the parameters", "OK");
 
             }
-            else MODCsi = MODCsiFromStorage;
-
-            string CSIFromStorage = await SecureStorage.Default.GetAsync("CSI");
-
-            if (CSIFromStorage == null)
-            {
-                // No value is associated with the key "CSI"
-                CSI = "1000000"; // Set to default instead
-
-            }
-            else CSI = CSIFromStorage;
-
-            string RMSFromStorage = await SecureStorage.Default.GetAsync("RMS");
-
-            if (RMSFromStorage == null)
-            {
-                // No value is associated with the key "RMS"
-                RMS = "10000"; // Set to default instead
-            }
-            else RMS = RMSFromStorage;
         }
 
         private void Onstart_measurementClicked()
@@ -137,52 +256,13 @@ namespace Bssure.ViewModels
             SemanticScreenReader.Announce(StartBtnText);
         }
 
-        public async void MODCsi_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            string MODCsi = ((Entry)sender).Text;
-            if (MODCsi == "1000000")
-            {
-                return; // Don't save if default
-            }
-            if (MODCsi == "")
-            {
-                return;
-            }
-            await SecureStorage.Default.SetAsync("MODCsi", MODCsi);
 
-        }
 
-        public async void CSIEntry_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            string CSI = ((Entry)sender).Text;
-            if (CSI == "1000000")
-            {
-                return; // Don't save if default
-            }
-            if (CSI == "")
-            {
-                return;
-            }
-            await SecureStorage.Default.SetAsync("CSI", CSI);
-        }
-
-        public async void RMSEntry_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            string RMS = ((Entry)sender).Text;
-            if (RMS == "10000")
-            {
-                return; // Don't save if default
-            }
-            if (RMS == "")
-            {
-                return;
-            }
-            await SecureStorage.Default.SetAsync("RMS", RMS);
-        }
 
         private async void OnHomeClicked()
         {
-            await Shell.Current.GoToAsync(nameof(MainPage), true);
+            await Shell.Current.GoToAsync(".."); // This command will sent you back to previos page
+            //await Shell.Current.GoToAsync(nameof(MainPage), true);
         }
 
     }

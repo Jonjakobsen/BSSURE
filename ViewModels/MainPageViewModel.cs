@@ -31,40 +31,40 @@ namespace Bssure.ViewModels
             get => _UserIdEntry;
             set => SetProperty(ref _UserIdEntry, value);
         }
-      
 
 
-     
+
+
 
 
         public MainPageViewModel(BLEservice bluetoothLEService, IRawDataService rawDataService) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
-            
+
             ble = bluetoothLEService;
             rawDataSender = rawDataService;
             BLEConnectCommand = new RelayCommand(OnBLE_connectClicked);
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
         }
-        
+
 
         private async void OnSubmitClicked()
         {
             if (UserIdEntry == "" || UserIdEntry == null)
             {
-            await Application.Current.MainPage.DisplayAlert("No User ID", $"Input User ID to continue", "OK");
-                
+                await Application.Current.MainPage.DisplayAlert("No User ID", $"Input User ID to continue", "OK");
+
             }
             else
             {
                 StoreUserId(UserIdEntry);
                 //await Shell.Current.Navigation.PushModalAsync(new (new MeasurementPageViewModel()));
                 await Shell.Current.GoToAsync(nameof(MeasurementPage), true);
-               
+
             }
         }
 
-  
+
         private async void LoadUser()
         {
             string UserID = await SecureStorage.Default.GetAsync("UserID");
@@ -90,6 +90,6 @@ namespace Bssure.ViewModels
 
 
         }
-       
+
     }
 }
