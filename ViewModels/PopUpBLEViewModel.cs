@@ -1,4 +1,6 @@
 ﻿using Bssure.CortriumDevice;
+using Bssure.DTO;
+using Bssure.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Plugin.BLE.Abstractions;
@@ -16,9 +18,14 @@ namespace Bssure.ViewModels
 {
     public class PopUpBLEViewModel : BaseViewModel
     {
-        public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates { get { return _listOfDeviceCandidates; } set { 
+        public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates
+        {
+            get { return _listOfDeviceCandidates; }
+            set
+            {
                 _listOfDeviceCandidates = value;
-            } } //This is the list of devices that is shown in the UI
+            }
+        } //This is the list of devices that is shown in the UI
 
         private ObservableCollection<DeviceCandidate> _listOfDeviceCandidates = new ObservableCollection<DeviceCandidate>(); //This is the list of devices that is shown in the UI
         public IAsyncRelayCommand ScanNearbyDevicesAsyncCommand { get; } //kræver knap
@@ -30,15 +37,18 @@ namespace Bssure.ViewModels
 
         private ObservableCollection<EKGSampleDTO> _ekgSamples = new ObservableCollection<EKGSampleDTO>();
         public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
-      
+
 
 
 
         public BLEservice BLEservice { get; set; }
-        public PopUpBLEViewModel(BLEservice ble)
+        public IRawDataService RawDataSender { get; }
+
+        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender)
         {
-            BLEservice= ble;
-            ListOfDeviceCandidates= new ObservableCollection<DeviceCandidate>();
+            BLEservice = ble;
+            RawDataSender = rawDataSender;
+            ListOfDeviceCandidates = new ObservableCollection<DeviceCandidate>();
             //Her bindes kommandoer til CommunityMVVM toolkit Asyncrelay, så de kan kaldes asynkront
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
@@ -47,7 +57,7 @@ namespace Bssure.ViewModels
         }
         async Task ScanDevicesAsync()
         {
-            
+
 
             if (!BLEservice.bleInterface.IsAvailable)
             {
@@ -79,7 +89,7 @@ namespace Bssure.ViewModels
                     return;
                 }
 
-            
+
 
                 List<DeviceCandidate> newlyFoundDevices = await BLEservice.ScanForDevicesAsync();
 
@@ -99,7 +109,7 @@ namespace Bssure.ViewModels
                     ListOfDeviceCandidates.Add(deviceCandidate); //add the found devices to the global list for the viewmodel
                 }
                 //TODO: Den connecter direkte til det første device den finder, bør laves om så man selv skal udvælge det
-                if (ListOfDeviceCandidates.Count>=1)
+                if (ListOfDeviceCandidates.Count >= 1)
                 {
                     await ConnectToDeviceCandidateAsync(ListOfDeviceCandidates.First());
                 }
@@ -111,11 +121,11 @@ namespace Bssure.ViewModels
                 Debug.WriteLine($"Unable to get nearby Bluetooth LE devices: {ex.Message}");
                 await Shell.Current.DisplayAlert($"Unable to get nearby Bluetooth LE devices", $"{ex.Message}.", "OK");
             }
-            
+
         }
         async Task CheckBluetoothAvailabilityAsync()
         {
-           
+
 
             try
             {
@@ -144,7 +154,7 @@ namespace Bssure.ViewModels
         private async Task ConnectToDeviceCandidateAsync(DeviceCandidate deviceCandidate)
         {
             BLEservice.BleDevice = deviceCandidate;
-            
+
 
             if (!BLEservice.bleInterface.IsOn)
             {
@@ -160,7 +170,7 @@ namespace Bssure.ViewModels
 
             try
             {
-               
+
                 if (BLEservice.DeviceInterface != null)
                 {
                     if (BLEservice.DeviceInterface.State == DeviceState.Connected)
@@ -216,12 +226,11 @@ namespace Bssure.ViewModels
                 Debug.WriteLine($"Unable to connect to {BLEservice.BleDevice.Name} {BLEservice.BleDevice.Id}: {ex.Message}.");
                 await Shell.Current.DisplayAlert($"{BLEservice.BleDevice.Name}", $"Unable to connect to {BLEservice.BleDevice.Name}.", "OK");
             }
-           
-        }
 
+        }
         private async Task DisconnectFromDeviceAsync()
         {
-            
+
 
             if (BLEservice.DeviceInterface == null)
             {
@@ -249,7 +258,7 @@ namespace Bssure.ViewModels
 
             try
             {
-                
+
                 await EKGCharacteristic.StopUpdatesAsync();
 
                 await BLEservice.AdapterInterface.DisconnectDeviceAsync(BLEservice.DeviceInterface);
@@ -271,17 +280,26 @@ namespace Bssure.ViewModels
                 //await Shell.Current.GoToAsync("//MainPage", true);
             }
         }
-
         //This is the eventhandler that receives raw samples from the device
         private void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
             var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
             var time = DateTimeOffset.Now.LocalDateTime;
+            var PatientId = "1";
 
             //Add the newest sample to the list
-            EKGSamples.Add(new EKGSampleDTO { rawBytes = bytes, Timestamp = time });
+            EKGSampleDTO item = new EKGSampleDTO { patientId=PatientId,  rawBytes = bytes, Timestamp = time };
+            EKGSamples.Add(item);
 
+            //MQTTService.Publish_RawData(item);
+            _ = sendDataAsync(item);
             //TODO her skal pushes fra BSSURE til CSSURE
+        }
+
+        private async Task sendDataAsync(EKGSampleDTO item)
+        {
+
+            await Task.Run(() => RawDataSender.ProcessData(item));
         }
 
 

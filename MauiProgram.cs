@@ -4,6 +4,7 @@ using System.ComponentModel;
 using Microsoft.Maui.Controls.Hosting;
 using CommunityToolkit.Maui; // Nuget needs to be version 1.2.0 to work, not 5.0.0. Jonsnyegren bruger 2.0.0, og det virker også.
 using Bssure;
+using Bssure.Services;
 
 namespace Bssure;
 
@@ -25,8 +26,11 @@ public static class MauiProgram
 			});
         builder.Services.AddSingleton<BLEservice>();
 
+        builder.Services.AddSingleton<IRawDataService, RawDataService>();
+        builder.Services.AddSingleton<IMQTTService, MqttService>();
 
-		builder.Services.AddSingleton<MainPage>();
+
+        builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<MainPageViewModel>();
         builder.Services.AddSingleton<MeasurementPage>();
         builder.Services.AddSingleton<MeasurementPageViewModel>();

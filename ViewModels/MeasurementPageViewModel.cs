@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Bssure.Services;
 
 namespace Bssure.ViewModels
 {
@@ -63,9 +64,10 @@ namespace Bssure.ViewModels
             get => _RMSEntry;
             set => SetProperty(ref _RMSEntry, value);
         }
+        public IMQTTService MQTTService { get; }
         #endregion
 
-        public MeasurementPageViewModel()
+        public MeasurementPageViewModel(IMQTTService mQTTService)
         {
             System.Threading.Thread.Sleep(100);
             OnSetDefaultValuesClicked();
@@ -74,6 +76,7 @@ namespace Bssure.ViewModels
             StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
+            MQTTService = mQTTService;
         }
 
         private void OnSetDefaultValuesClicked()
@@ -122,11 +125,13 @@ namespace Bssure.ViewModels
             {
                 StartBtnText = StopText;
                 //Todo:Her startes målingen
+                MQTTService.StartSending();
             }
             else
             {
                 StartBtnText = StartText;
                 //Todo:Her stoppes målingen
+                MQTTService.StopSending();
             }
 
             SemanticScreenReader.Announce(StartBtnText);

@@ -28,7 +28,7 @@ public partial class MainPage : ContentPage
         {
             try
             {
-                await Shell.Current.Navigation.PushModalAsync(new MeasurementPage(new MeasurementPageViewModel()));
+                await Shell.Current.GoToAsync(nameof(MeasurementPage), true);
             }
             catch { await Shell.Current.DisplayAlert($"No User ID", $"Input User ID to continue", "OK"); }
         }
