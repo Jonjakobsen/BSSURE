@@ -43,7 +43,7 @@ namespace Bssure.Services
 
         void PublishMetaData(UserDataDTO data);
 
-        void StartSending();
+        void StartSending(string userId);
         void StopSending();
 
     }
@@ -67,7 +67,7 @@ namespace Bssure.Services
         public MqttService()
         {
             Started = false;
-            client = new MqttClient("192.168.1.181");
+            client = new MqttClient("192.168.0.4");
             clientId = Guid.NewGuid().ToString();
             OpenConncetion();
             //Minor change
@@ -154,6 +154,7 @@ namespace Bssure.Services
         {
             if (Started)
             {
+                data.patientId = UserId;
                 var serialData = JsonSerializer.Serialize<EKGSampleDTO>(data);
                 client.Publish(Topics.Topic_Series_FromBSSURE, Encoding.UTF8.GetBytes(serialData));
             }
@@ -164,12 +165,14 @@ namespace Bssure.Services
             if (Client.IsConnected)
             {
                 var serialData = JsonSerializer.Serialize<UserDataDTO>(data);
-                client.Publish(Topics.Topic_Series_FromBSSURE, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
+                client.Publish(Topics.Topic_UserData+"/"+data.UserId, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
             }
         }
 
-        public void StartSending()
+        private string UserId = "Unknown";
+        public void StartSending(string userId)
         {
+            UserId = userId;
             Started = true;
         }
 
@@ -190,7 +193,7 @@ namespace Bssure.Services
             Topic_Status_BSSURE = "ECG/Status/BSSURE",
 
 
-            Topic_UserData = "ECG/Userdata/NewUser",
+            Topic_UserData = "ECG/Userdata",
             Topic_Series_FromBSSURE = "ECG/Series/BSSURE2CSSURE",
             Topic_Series_TempToBSSURE = "ECG/Temp/ToBSSURE";
     }

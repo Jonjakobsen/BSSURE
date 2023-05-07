@@ -285,10 +285,10 @@ namespace Bssure.ViewModels
         {
             var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
             var time = DateTimeOffset.Now.LocalDateTime;
-            var PatientId = "1";
+            
 
             //Add the newest sample to the list
-            EKGSampleDTO item = new EKGSampleDTO { patientId=PatientId,  rawBytes = bytes, Timestamp = time };
+            EKGSampleDTO item = new EKGSampleDTO {rawBytes = bytes, Timestamp = time };
             EKGSamples.Add(item);
 
             //MQTTService.Publish_RawData(item);

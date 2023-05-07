@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Bssure.Services;
+using Bssure.DTO;
 
 namespace Bssure.ViewModels
 {
@@ -26,6 +27,7 @@ namespace Bssure.ViewModels
         #region Fields  
         private readonly string StartText = "Start measurement";
         private readonly string StopText = "Stop measurement";
+        private readonly BLEservice bleService;
 
         #endregion
 
@@ -52,8 +54,8 @@ namespace Bssure.ViewModels
         }
         public RelayCommand SaveAllParametersCommand { get; }
 
-        private string _CSI30;
-        public string CSI30
+        private float _CSI30;
+        public float CSI30
         {
             get => _CSI30;
             set
@@ -62,8 +64,8 @@ namespace Bssure.ViewModels
                 SetProperty(ref _CSI30, value);
             }
         }
-        private string _CSI50;
-        public string CSI50
+        private float _CSI50;
+        public float CSI50
         {
             get => _CSI50;
             set
@@ -72,8 +74,8 @@ namespace Bssure.ViewModels
                 SetProperty(ref _CSI50, value);
             }
         }
-        private string _CSI100;
-        public string CSI100
+        private float _CSI100;
+        public float CSI100
         {
             get => _CSI100;
             set
@@ -84,8 +86,8 @@ namespace Bssure.ViewModels
             }
         }
 
-        private string _ModCSI30;
-        public string ModCSI30
+        private float _ModCSI30;
+        public float ModCSI30
         {
             get => _ModCSI30;
             set
@@ -95,8 +97,8 @@ namespace Bssure.ViewModels
             }
 
         }
-        private string _ModCSI50;
-        public string ModCSI50
+        private float _ModCSI50;
+        public float ModCSI50
         {
             get => _ModCSI50;
             set
@@ -105,8 +107,8 @@ namespace Bssure.ViewModels
                 SetProperty(ref _ModCSI50, value);
             }
         }
-        private string _ModCSI100;
-        public string ModCSI100
+        private float _ModCSI100;
+        public float ModCSI100
         {
             get => _ModCSI100;
             set
@@ -117,9 +119,9 @@ namespace Bssure.ViewModels
         }
 
 
-        private string _RMSEntry;
+        private float _RMSEntry;
 
-        public string RMS
+        public float RMS
         {
             get => _RMSEntry;
             set
@@ -131,7 +133,7 @@ namespace Bssure.ViewModels
         public IMQTTService MQTTService { get; }
         #endregion
 
-        public MeasurementPageViewModel(IMQTTService mQTTService)
+        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService)
         {
             System.Threading.Thread.Sleep(100);
             OnSetDefaultValuesClicked();
@@ -143,17 +145,31 @@ namespace Bssure.ViewModels
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
             MQTTService = mQTTService;
+            this.bleService = bleService;
+        }
+
+        string UserID = "Unknown";
+        private async Task OnSendPersonalMetadataAsync()
+        {
+            float[] csi = new float[] { CSI30, CSI50, CSI100 };
+            float[] modcsi = new float[] { ModCSI30, ModCSI50, ModCSI100 };
+
+            UserID = await SecureStorage.Default.GetAsync("UserID");
+
+            UserDataDTO userDataDTO = new UserDataDTO { CSINormMax = csi, ModCSINormMax = modcsi, UserId = UserID };
+
+            MQTTService.PublishMetaData(userDataDTO);
         }
 
         private void OnSetDefaultValuesClicked()
         {
-            ModCSI30 = "1000000";
-            ModCSI50 = "1000000";
-            ModCSI100 = "1000000";
-            CSI30 = "1000000";
-            CSI50 = "1000000";
-            CSI100 = "1000000";
-            RMS = "10000";
+            ModCSI30 = 1000000;
+            ModCSI50 = 1000000;
+            ModCSI100 = 1000000;
+            CSI30 = 1000000;
+            CSI50 = 1000000;
+            CSI100 = 1000000;
+            RMS = 10000;
         }
 
         private async void LoadUserValues()
@@ -161,16 +177,16 @@ namespace Bssure.ViewModels
             try
             {
 
-                string ModCSI30FromStorage = await SecureStorage.Default.GetAsync("ModCSI30");
-                string ModCSI50FromStorage = await SecureStorage.Default.GetAsync("ModCSI50");
-                string ModCSI100FromStorage = await SecureStorage.Default.GetAsync("ModCSI100");
+                float ModCSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI30"));
+                float ModCSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI50"));
+                float ModCSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI100"));
 
                 if (ModCSI30FromStorage == null)
                 {
                     // No value is associated with the key "MODCsi"
-                    ModCSI30 = "1000000"; // Set to default instead
-                    ModCSI50 = "1000000"; // Set to default instead
-                    ModCSI100 = "1000000"; // Set to default instead
+                    ModCSI30 = 1000000; // Set to default instead
+                    ModCSI50 = 1000000; // Set to default instead
+                    ModCSI100 = 1000000; // Set to default instead
 
                 }
                 else
@@ -180,16 +196,16 @@ namespace Bssure.ViewModels
                     ModCSI100 = ModCSI100FromStorage;
                 }
 
-                string CSI30FromStorage = await SecureStorage.Default.GetAsync("CSI30");
-                string CSI50FromStorage = await SecureStorage.Default.GetAsync("CSI50");
-                string CSI100FromStorage = await SecureStorage.Default.GetAsync("CSI100");
+                float CSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI30"));
+                float CSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI50"));
+                float CSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI100"));
 
                 if (ModCSI30FromStorage == null)
                 {
                     // No value is associated with the key "MODCsi"
-                    CSI30 = "1000000"; // Set to default instead
-                    CSI50 = "1000000"; // Set to default instead
-                    CSI100 = "1000000"; // Set to default instead
+                    CSI30 = 1000000; // Set to default instead
+                    CSI50 = 1000000; // Set to default instead
+                    CSI100 = 1000000; // Set to default instead
 
                 }
                 else
@@ -199,15 +215,19 @@ namespace Bssure.ViewModels
                     CSI100 = CSI100FromStorage;
                 }
 
-                string RMSFromStorage = await SecureStorage.Default.GetAsync("RMS");
+                float RMSFromStorage = float.Parse(await SecureStorage.Default.GetAsync("RMS"));
 
                 if (RMSFromStorage == null)
                 {
                     // No value is associated with the key "RMS"
-                    RMS = "10000"; // Set to default instead
+                    RMS = 10000; // Set to default instead
                 }
                 else RMS = RMSFromStorage;
                 Changed = false;
+
+
+
+                _ = OnSendPersonalMetadataAsync();
             }
             catch (Exception)
             {
@@ -219,13 +239,13 @@ namespace Bssure.ViewModels
         {
             try
             {
-                await SecureStorage.Default.SetAsync("ModCSI30", ModCSI30);
-                await SecureStorage.Default.SetAsync("ModCSI50", ModCSI50);
-                await SecureStorage.Default.SetAsync("ModCSI100", ModCSI100);
-                await SecureStorage.Default.SetAsync("CSI30", CSI30);
-                await SecureStorage.Default.SetAsync("CSI50", CSI50);
-                await SecureStorage.Default.SetAsync("CSI100", CSI100);
-                await SecureStorage.Default.SetAsync("RMS", RMS);
+                await SecureStorage.Default.SetAsync("ModCSI30", ModCSI30.ToString());
+                await SecureStorage.Default.SetAsync("ModCSI50", ModCSI50.ToString());
+                await SecureStorage.Default.SetAsync("ModCSI100", ModCSI100.ToString());
+                await SecureStorage.Default.SetAsync("CSI30", CSI30.ToString());
+                await SecureStorage.Default.SetAsync("CSI50", CSI50.ToString());
+                await SecureStorage.Default.SetAsync("CSI100", CSI100.ToString());
+                await SecureStorage.Default.SetAsync("RMS", RMS.ToString());
 
                 Changed = false;
                 await Application.Current.MainPage.DisplayAlert("Saved", "You have saved your parameters", "OK");
@@ -237,14 +257,24 @@ namespace Bssure.ViewModels
             }
         }
 
-        private void Onstart_measurementClicked()
+        async private void Onstart_measurementClicked()
         {
 
             if (StartBtnText == StartText)
             {
-                StartBtnText = StopText;
                 //Todo:Her startes målingen
-                MQTTService.StartSending();
+                var ble = bleService.DeviceList;
+                if (ble == null || ble.Count == 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert("No device connected", "Go back a connect to a device", "OK");
+
+                }
+                else
+                {
+
+                    StartBtnText = StopText;
+                    MQTTService.StartSending(UserID);
+                }
             }
             else
             {
