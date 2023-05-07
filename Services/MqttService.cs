@@ -67,7 +67,7 @@ namespace Bssure.Services
         public MqttService()
         {
             Started = false;
-            client = new MqttClient("192.168.0.4");
+            client = new MqttClient("172.20.10.5");
             clientId = Guid.NewGuid().ToString();
             OpenConncetion();
             //Minor change
