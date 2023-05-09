@@ -128,7 +128,7 @@ namespace Bssure.Services
 
         public void Publish_RawData(EKGSampleDTO data)
         {
-            if (Started && Client.IsConnected)
+            if (Started)
             {
                 data.patientId = UserId;
                 var serialData = JsonSerializer.Serialize<EKGSampleDTO>(data);
