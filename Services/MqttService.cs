@@ -13,28 +13,6 @@ using uPLibrary.Networking.M2Mqtt.Messages;
 
 namespace Bssure.Services
 {
-    public interface IRawDataService
-    {
-        void PublishRawData(EKGSampleDTO ekgSample);
-    }
-
-    public class RawDataService : IRawDataService
-    {
-
-        private readonly IMQTTService mqttService;
-        public RawDataService(IMQTTService MQTTManager)
-        {
-            mqttService = MQTTManager;
-        }
-        public void PublishRawData(EKGSampleDTO ekgSample)
-        {
-            mqttService.Publish_RawData(ekgSample);
-        }
-
-    }
-
-
-
     public interface IMQTTService
     {
         void OpenConncetion();
@@ -90,8 +68,6 @@ namespace Bssure.Services
             //Switch case to handle messages different topics
             switch (topic)
             {
-                case Topics.Topic_Series_TempToBSSURE:
-                    break;
                 case Topics.Topic_Status_CSSURE:
                     //TODO Handle status from CSSURE
                     break;
@@ -152,7 +128,7 @@ namespace Bssure.Services
 
         public void Publish_RawData(EKGSampleDTO data)
         {
-            if (Started)
+            if (Started && Client.IsConnected)
             {
                 data.patientId = UserId;
                 var serialData = JsonSerializer.Serialize<EKGSampleDTO>(data);
