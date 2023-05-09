@@ -13,6 +13,27 @@ using uPLibrary.Networking.M2Mqtt.Messages;
 
 namespace Bssure.Services
 {
+
+    public interface IRawDataService
+    {
+        void PublishRawData(EKGSampleDTO ekgSample);
+    }
+
+    public class RawDataService : IRawDataService
+    {
+
+        private readonly IMQTTService mqttService;
+        public RawDataService(IMQTTService MQTTManager)
+        {
+            mqttService = MQTTManager;
+        }
+        public void PublishRawData(EKGSampleDTO ekgSample)
+        {
+            mqttService.Publish_RawData(ekgSample);
+        }
+
+    }
+
     public interface IMQTTService
     {
         void OpenConncetion();
