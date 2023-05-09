@@ -154,7 +154,7 @@ namespace Bssure.Services
         {
             if (Started)
             {
-                data.patientId = UserId;
+                data.PatientId = UserId;
                 var serialData = JsonSerializer.Serialize<EKGSampleDTO>(data);
                 client.Publish(Topics.Topic_Series_FromBSSURE, Encoding.UTF8.GetBytes(serialData));
             }

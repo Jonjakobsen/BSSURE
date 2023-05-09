@@ -274,7 +274,8 @@ namespace Bssure.ViewModels
             {
                 byte[] stopByte = new byte[1] { 0x00 }; //0x00 is the stop byte, with the value 0
                 DateTime stopTime = DateTimeOffset.Now.LocalDateTime;
-                EKGSamples.Add(new EKGSampleDTO { rawBytes = stopByte, Timestamp = stopTime });
+                sbyte[] bytessigned = Array.ConvertAll(stopByte, x => unchecked((sbyte)x));
+                EKGSamples.Add(new EKGSampleDTO { RawBytes = bytessigned, Timestamp = stopTime });
                 BLEservice.DeviceInterface?.Dispose();
                 BLEservice.DeviceInterface = null;
                 //await Shell.Current.GoToAsync("//MainPage", true);
@@ -284,11 +285,12 @@ namespace Bssure.ViewModels
         private void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
             var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
+            sbyte[] bytessigned = Array.ConvertAll(bytes,x=> unchecked((sbyte)x)); 
             var time = DateTimeOffset.Now.LocalDateTime;
             
 
             //Add the newest sample to the list
-            EKGSampleDTO item = new EKGSampleDTO {rawBytes = bytes, Timestamp = time };
+            EKGSampleDTO item = new EKGSampleDTO {RawBytes = bytessigned, Timestamp = time };
             EKGSamples.Add(item);
 
             //MQTTService.Publish_RawData(item);
