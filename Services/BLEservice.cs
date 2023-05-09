@@ -140,7 +140,7 @@ public class BLEservice
         PermissionStatus status = PermissionStatus.Unknown;
         try
         {
-            status = await Permissions.CheckStatusAsync<BLEPermissionsAndroid>();
+            status = await Permissions.CheckStatusAsync<BluetoothPermissions>();
         }
         catch (Exception ex)
         {
@@ -163,7 +163,7 @@ public class BLEservice
 
         try
         {
-            status = await Permissions.RequestAsync<BLEPermissionsAndroid>();
+            status = await Permissions.RequestAsync<BluetoothPermissions>();
         }
         catch (Exception ex)
         {

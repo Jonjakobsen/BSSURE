@@ -18,7 +18,7 @@ namespace Bssure.ViewModels
     {
 
         public BLEservice ble { get; private set; } //This is the service that is injected into the viewmodel, that handles Plugin.Ble
-        public IRawDataService rawDataSender { get; }
+        public IMQTTService mqttService { get; }
         public ICommand BLEConnectCommand { get; }
 
         public ICommand SubmitUserIDCommand { get; }
@@ -37,11 +37,11 @@ namespace Bssure.ViewModels
 
 
 
-        public MainPageViewModel(BLEservice bluetoothLEService, IRawDataService rawDataService) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
+        public MainPageViewModel(BLEservice bluetoothLEService, IMQTTService mqttService) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
 
             ble = bluetoothLEService;
-            rawDataSender = rawDataService;
+            mqttService = this.mqttService;
             BLEConnectCommand = new RelayCommand(OnBLE_connectClicked);
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
@@ -85,7 +85,7 @@ namespace Bssure.ViewModels
         public async void OnBLE_connectClicked()
         {
             //await Shell.Current.GoToAsync(nameof(PopUpBLE), true);
-            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, rawDataSender)));
+            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, mqttService)));
             //Shell.Current.CurrentPage.ShowPopup(new PopUpBLE());
 
 
