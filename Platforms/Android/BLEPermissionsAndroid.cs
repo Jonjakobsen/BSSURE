@@ -4,32 +4,6 @@ namespace Bssure;
 
 //from https://github.com/TimoKinnunen/MauiXAMLBluetoothLE
 //implementing code from JM: https://youtu.be/9GljgwfpiiE
-//public class BLEPermissionsAndroid : Permissions.BasePlatformPermission //base platform permission is a class that implements IPermission for all platforms
-//{
-
-    //public override (string androidPermission, bool isRuntime)[] RequiredPermissions
-    //{
-    //    get
-    //    {
-    //        return new List<(string androidPermission, bool isRuntime)>
-    //        {
-
-    //            (Android.Manifest.Permission.Bluetooth, true),
-    //            (Android.Manifest.Permission.BluetoothAdmin, true),
-    //            (Android.Manifest.Permission.BluetoothScan, true),
-    //            (Android.Manifest.Permission.BluetoothConnect, true),
-    //            (Android.Manifest.Permission.AccessFineLocation, true),
-    //            (Android.Manifest.Permission.AccessCoarseLocation, true),
-    //            (Android.Manifest.Permission.AccessBackgroundLocation, true),
-
-    //        }.ToArray();
-    //    }
-    //}
-
-    ////--------------------------------------------------------------------------------
-    //// SO FAR THIS CLASS IS NOT IN USE, BUT MIGHT HAVE NECESSARY CODE FOR LATER! 
-    ////--------------------------------------------------------------------------------
-
 
     //// MAUI Bluetooth Permission Decleration (for Android).
 public partial class BluetoothPermissions : Permissions.BasePlatformPermission
@@ -127,4 +101,3 @@ public partial class BluetoothPermissions : Permissions.BasePlatformPermission
         }
     }
 }
-    
