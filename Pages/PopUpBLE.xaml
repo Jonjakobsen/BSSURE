@@ -17,13 +17,17 @@
 					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
 					Text="Check Bluetooth Availability"
-					AbsoluteLayout.LayoutBounds="1,1,100,50"/>
+					AbsoluteLayout.LayoutBounds="1,1,100,50"
+                    BackgroundColor="White"
+                    TextColor="Black"/>
 
             <Button x:Name="ScanNearby"
 					Command="{Binding ScanNearbyDevicesAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
 					Text="Scan nearby devices"
-					AbsoluteLayout.LayoutBounds="1,1,100,50"/>
+					AbsoluteLayout.LayoutBounds="1,1,100,50"
+                    BackgroundColor="White"
+                    TextColor="Black"/>
 
             <CollectionView x:Name="MainPageListOfDevices"
                             ItemsSource="{Binding ListOfDeviceCandidates}"

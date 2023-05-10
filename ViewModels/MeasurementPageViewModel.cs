@@ -263,10 +263,10 @@ namespace Bssure.ViewModels
             if (StartBtnText == StartText)
             {
                 //Todo:Her startes målingen
-                var ble = bleService.DeviceList;
-                if (ble == null || ble.Count == 0)
+                var ble = bleService;
+                if (ble.DeviceInterface == null)
                 {
-                    await Application.Current.MainPage.DisplayAlert("No device connected", "Go back a connect to a device", "OK");
+                    await Application.Current.MainPage.DisplayAlert("No device connected", "Go back and connect to a device", "OK");
 
                 }
                 else

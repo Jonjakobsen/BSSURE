@@ -21,6 +21,8 @@ namespace Bssure.ViewModels
         public IMQTTService mqttService { get; }
         public ICommand BLEConnectCommand { get; }
 
+        public ICommand BLEDisconnectCommand { get; }
+
         public ICommand SubmitUserIDCommand { get; }
 
         // Her starter viewproperties 
@@ -43,10 +45,61 @@ namespace Bssure.ViewModels
             ble = bluetoothLEService;
             mqttService = mQTTService;
             BLEConnectCommand = new RelayCommand(OnBLE_connectClicked);
+            BLEDisconnectCommand = new RelayCommand(OnBLE_disconnectClicked);
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
         }
 
+        private async void OnBLE_disconnectClicked()
+        {
+
+
+            if (ble.DeviceInterface == null)
+            {
+                await ble.ShowToastAsync("No Device Error", $"Nothing to do.");
+                return;
+            }
+
+            if (!ble.bleInterface.IsOn)
+            {
+                await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn Bluetooth on and try again.", "OK");
+                return;
+            }
+
+            if (ble.AdapterInterface.IsScanning)
+            {
+                await ble.ShowToastAsync("Scan in progress", $"Bluetooth adapter is scanning. Try again.");
+                return;
+            }
+
+            if (ble.DeviceInterface.State == DeviceState.Disconnected)
+            {
+                await ble.ShowToastAsync("Bluetooth", $"{ble.DeviceInterface.Name} is already disconnected.");
+                return;
+            }
+
+            try
+            {
+
+                mqttService.StopSending();
+                await ble.AdapterInterface.DisconnectDeviceAsync(ble.DeviceInterface);
+
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Unable to disconnect from {ble.DeviceInterface.Name} {ble.DeviceInterface.Id}: {ex.Message}.");
+                await Shell.Current.DisplayAlert($"{ble.DeviceInterface.Name}", $"Unable to disconnect from {ble.DeviceInterface.Name}.", "OK");
+            }
+            finally
+            {
+                byte[] stopByte = new byte[1] { 0x00 }; //0x00 is the stop byte, with the value 0
+                DateTime stopTime = DateTimeOffset.Now.LocalDateTime;
+                ble.DeviceInterface?.Dispose();
+                ble.DeviceInterface = null;
+                //await Shell.Current.GoToAsync("//MainPage", true);
+            }
+        }
 
         private async void OnSubmitClicked()
         {
