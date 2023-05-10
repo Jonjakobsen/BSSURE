@@ -1,4 +1,5 @@
 ﻿using Bssure.CortriumDevice;
+using Bssure.DecodingBytes;
 using Bssure.Pages;
 using Bssure.Services;
 using CommunityToolkit.Maui.Views;
@@ -27,6 +28,8 @@ namespace Bssure.ViewModels
         // Her starter viewproperties 
 
         private string _UserIdEntry;
+        private readonly IDecoder decoder;
+
         public string UserIdEntry
         {
             get => _UserIdEntry;
@@ -38,12 +41,13 @@ namespace Bssure.ViewModels
 
 
 
-        public MainPageViewModel(BLEservice bluetoothLEService, IRawDataService rawDataService) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
+        public MainPageViewModel(BLEservice bluetoothLEService, IRawDataService rawDataService, IDecoder decoder) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
 
             ble = bluetoothLEService;
             //mqttService = _mqttService;
             rawDataSender = rawDataService;
+            this.decoder = decoder;
             BLEConnectCommand = new RelayCommand(OnBLE_connectClicked);
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
@@ -87,7 +91,7 @@ namespace Bssure.ViewModels
         public async void OnBLE_connectClicked()
         {
             //await Shell.Current.GoToAsync(nameof(PopUpBLE), true);
-            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, rawDataSender)));
+            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, rawDataSender, decoder)));
             //Shell.Current.CurrentPage.ShowPopup(new PopUpBLE());
 
 

@@ -10,9 +10,19 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Bssure.Services;
 using Bssure.DTO;
+using System.Collections.ObjectModel;
+using Bssure.DecodingBytes;
+using Bssure.Models;
+using System.Diagnostics;
 
 namespace Bssure.ViewModels
 {
+    public class ECGGraph
+    {
+        public DateTime X { get; set; }
+        public int Y { get; set; }
+    }
+
     public partial class MeasurementPageViewModel : ObservableObject
     {
         #region Commands
@@ -21,6 +31,7 @@ namespace Bssure.ViewModels
 
         public ICommand SetDefaultValuesCommand { get; }
         public ICommand BackToMainpageCommand { get; }
+        public Thread graphThread { get; set; }
 
         #endregion
 
@@ -28,6 +39,7 @@ namespace Bssure.ViewModels
         private readonly string StartText = "Start measurement";
         private readonly string StopText = "Stop measurement";
         private readonly BLEservice bleService;
+        private readonly IDecoder decoder;
 
         #endregion
 
@@ -130,15 +142,26 @@ namespace Bssure.ViewModels
                 SetProperty(ref _RMSEntry, value);
             }
         }
+
         public IMQTTService MQTTService { get; }
+
+
+        private ObservableCollection<ECGGraph> _ecgSamples;
+        public ObservableCollection<ECGGraph> ECGSamples
+        {
+            get => _ecgSamples;
+            set => SetProperty(ref _ecgSamples, value);
+        }
+
         #endregion
 
-        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService)
+        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService, IDecoder decoder)
         {
             System.Threading.Thread.Sleep(100);
             OnSetDefaultValuesClicked();
             LoadUserValues();
             StartBtnText = StartText;
+            ECGSamples = new ObservableCollection<ECGGraph>();
 
             SaveAllParametersCommand = new RelayCommand(SaveUserValues);
             StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
@@ -146,6 +169,44 @@ namespace Bssure.ViewModels
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
             MQTTService = mQTTService;
             this.bleService = bleService;
+            this.decoder = decoder;
+
+            graphThread = new Thread(Dequeue);
+            graphThread.IsBackground = true;
+            graphThread.Start();
+        }
+
+        private void Dequeue()
+        {
+            while (true) //TODO: make another flag
+            {
+                Thread.Sleep(1000);
+                if (decoder.ECGBatchDataQueue.TryTake(out ECGBatchData item, 1000))
+                {
+                    try
+                    {
+                        //foreach (int sample in item.ECGChannel1)
+                        //{
+                         ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = item.ECGChannel1[0] });
+                        //}
+                    }
+                    catch (InvalidCastException e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
+
+                    if (ECGSamples.Count % 252 == 0)
+                    {
+                        ECGSamples.Clear();
+                        // System.InvalidOperationException: 'Cannot change ObservableCollection during a CollectionChanged event.'
+                    }
+                }
+            }
+        }
+
+        public MeasurementPageViewModel()
+        {
+
         }
 
         string UserID = "Unknown";
@@ -285,9 +346,6 @@ namespace Bssure.ViewModels
 
             SemanticScreenReader.Announce(StartBtnText);
         }
-
-
-
 
         private async void OnHomeClicked()
         {

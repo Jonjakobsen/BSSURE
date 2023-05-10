@@ -1,4 +1,5 @@
 ﻿using Bssure.CortriumDevice;
+using Bssure.DecodingBytes;
 using Bssure.DTO;
 using Bssure.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -36,6 +37,8 @@ namespace Bssure.ViewModels
         public ICharacteristic EKGCharacteristic { get; private set; }
 
         private ObservableCollection<EKGSampleDTO> _ekgSamples = new ObservableCollection<EKGSampleDTO>();
+        private readonly IDecoder decoder;
+
         public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
 
 
@@ -44,10 +47,11 @@ namespace Bssure.ViewModels
         public BLEservice BLEservice { get; set; }
         public IRawDataService RawDataSender { get; }
         //public IMQTTService MqttService { get; }
-        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender)
+        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender, IDecoder decoder)
         {
             BLEservice = ble;
             RawDataSender = rawDataSender;
+            this.decoder = decoder;
             ListOfDeviceCandidates = new ObservableCollection<DeviceCandidate>();
             //Her bindes kommandoer til CommunityMVVM toolkit Asyncrelay, så de kan kaldes asynkront
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
@@ -282,12 +286,13 @@ namespace Bssure.ViewModels
             }
         }
         //This is the eventhandler that receives raw samples from the device
-        private void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
+        private async void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
             var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
             sbyte[] bytessigned = Array.ConvertAll(bytes,x=> unchecked((sbyte)x)); 
             var time = DateTimeOffset.Now.LocalDateTime;
-            
+
+            await Task.Run(() => decoder.DecodeBytes(bytessigned));
 
             //Add the newest sample to the list
             EKGSampleDTO item = new EKGSampleDTO {RawBytes = bytessigned, Timestamp = time };
@@ -300,7 +305,6 @@ namespace Bssure.ViewModels
 
         private async Task sendDataAsync(EKGSampleDTO item)
         {
-
             await Task.Run(() => RawDataSender.PublishRawData(item));
         }
 

@@ -4,10 +4,15 @@
              x:Class="Bssure.Pages.MeasurementPage"
              Title="MeasurementPage"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:Bssure.DTO"
              x:DataType="viewmodel:MeasurementPageViewModel"
              xmlns:model="clr-namespace:Bssure.CortriumDevice"
-             xmlns:viewmodel="clr-namespace:Bssure.ViewModels">
+             xmlns:viewmodel="clr-namespace:Bssure.ViewModels"
+             xmlns:chart="clr-namespace:Syncfusion.Maui.Charts;assembly=Syncfusion.Maui.Charts">
 
+    <ContentPage.BindingContext>
+        <viewmodel:MeasurementPageViewModel></viewmodel:MeasurementPageViewModel>
+    </ContentPage.BindingContext>
 
 
     <ScrollView>
@@ -34,6 +39,25 @@
                 TextColor="Black"
                 BorderColor="Black" />
 
+            <!--https://help.syncfusion.com/maui/cartesian-charts/getting-started-->
+            <!--https://help.syncfusion.com/xamarin/charts/working-with-data-->
+            <chart:SfCartesianChart Title="Heyoo">
+
+                <chart:SfCartesianChart.XAxes>
+                    <chart:DateTimeAxis />
+                </chart:SfCartesianChart.XAxes>
+
+                <chart:SfCartesianChart.YAxes>
+                    <chart:NumericalAxis />
+                </chart:SfCartesianChart.YAxes>
+
+                <chart:LineSeries 
+                    x:Name="ECGchart"
+                    ItemsSource="{Binding ECGSamples}"
+                    YBindingPath="Y"
+                    XBindingPath="X"/>
+
+            </chart:SfCartesianChart>
 
 
             <StackLayout Spacing="15">
