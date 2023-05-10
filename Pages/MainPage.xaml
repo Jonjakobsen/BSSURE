@@ -5,7 +5,8 @@
              x:Class="Bssure.Pages.MainPage"
 			 x:DataType="viewmodel:MainPageViewModel"
              xmlns:model="clr-namespace:Bssure.CortriumDevice"
-             xmlns:viewmodel="clr-namespace:Bssure.ViewModels">
+             xmlns:viewmodel="clr-namespace:Bssure.ViewModels"
+             Shell.NavBarIsVisible="false">
 	
 
     <ScrollView>
@@ -20,7 +21,11 @@
                     TextColor="Black"
                     BorderColor="Black" />
 
-            
+            <Button x:Name="BLE_disconnect"
+                    Text="Disconnect from bluetooth"
+                    Command="{Binding BLEDisconnectCommand}"/>
+
+
 
             <StackLayout>
                 <Label Text="Enter your user ID:" FontSize="20" />
