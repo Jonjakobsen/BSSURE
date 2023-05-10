@@ -66,7 +66,7 @@ namespace Bssure.Services
         public MqttService()
         {
             Started = false;
-            client = new MqttClient("172.20.10.5");
+            client = new MqttClient("assure.au-dev.dk");
             clientId = Guid.NewGuid().ToString();
             OpenConncetion();
             //Minor change
@@ -118,8 +118,8 @@ namespace Bssure.Services
                     //client.Connect(clientId);
                     client.Connect(
                         clientId: clientId,
-                        username: "",
-                        password: "",
+                        username: "s1",
+                        password: "passwordfors1",
                         cleanSession: false,
                         keepAlivePeriod: 60,
                         willFlag: true,

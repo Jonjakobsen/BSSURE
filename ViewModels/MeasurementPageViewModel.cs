@@ -272,6 +272,7 @@ namespace Bssure.ViewModels
                 else
                 {
 
+                    UserID = await SecureStorage.Default.GetAsync("UserID");
                     StartBtnText = StopText;
                     MQTTService.StartSending(UserID);
                 }
