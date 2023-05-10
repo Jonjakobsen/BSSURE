@@ -42,12 +42,12 @@ namespace Bssure.ViewModels
 
 
         public BLEservice BLEservice { get; set; }
-        public IRawDataService RawDataSender { get; }
+        public IMQTTService mqttService { get; }
         //public IMQTTService MqttService { get; }
-        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender)
+        public PopUpBLEViewModel(BLEservice ble, IMQTTService mQTTService)
         {
             BLEservice = ble;
-            RawDataSender = rawDataSender;
+            mqttService = mQTTService;
             ListOfDeviceCandidates = new ObservableCollection<DeviceCandidate>();
             //Her bindes kommandoer til CommunityMVVM toolkit Asyncrelay, så de kan kaldes asynkront
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
@@ -301,7 +301,7 @@ namespace Bssure.ViewModels
         private async Task sendDataAsync(EKGSampleDTO item)
         {
 
-            await Task.Run(() => RawDataSender.PublishRawData(item));
+            await Task.Run(() => mqttService.Publish_RawData(item));
         }
 
 

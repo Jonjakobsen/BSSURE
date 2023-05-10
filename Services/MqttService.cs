@@ -14,26 +14,6 @@ using uPLibrary.Networking.M2Mqtt.Messages;
 namespace Bssure.Services
 {
 
-    public interface IRawDataService
-    {
-        void PublishRawData(EKGSampleDTO ekgSample);
-    }
-
-    public class RawDataService : IRawDataService
-    {
-
-        private readonly IMQTTService mqttService;
-        public RawDataService(IMQTTService MQTTManager)
-        {
-            mqttService = MQTTManager;
-        }
-        public void PublishRawData(EKGSampleDTO ekgSample)
-        {
-            mqttService.Publish_RawData(ekgSample);
-        }
-
-    }
-
     public interface IMQTTService
     {
         void OpenConncetion();
@@ -161,6 +141,7 @@ namespace Bssure.Services
         {
             if (Client.IsConnected)
             {
+                Debug.WriteLine("Sending MetaData");
                 var serialData = JsonSerializer.Serialize<UserDataDTO>(data);
                 client.Publish(Topics.Topic_UserData+"/"+data.UserId, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
             }

@@ -130,7 +130,7 @@ namespace Bssure.ViewModels
                 SetProperty(ref _RMSEntry, value);
             }
         }
-        public IMQTTService MQTTService { get; }
+        public IMQTTService mqttService { get; }
         #endregion
 
         public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService)
@@ -144,7 +144,7 @@ namespace Bssure.ViewModels
             StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
-            MQTTService = mQTTService;
+            mqttService = mQTTService;
             this.bleService = bleService;
         }
 
@@ -158,7 +158,7 @@ namespace Bssure.ViewModels
 
             UserDataDTO userDataDTO = new UserDataDTO { CSINormMax = csi, ModCSINormMax = modcsi, UserId = UserID };
 
-            MQTTService.PublishMetaData(userDataDTO);
+            mqttService.PublishMetaData(userDataDTO);
         }
 
         private void OnSetDefaultValuesClicked()
@@ -274,14 +274,14 @@ namespace Bssure.ViewModels
 
                     UserID = await SecureStorage.Default.GetAsync("UserID");
                     StartBtnText = StopText;
-                    MQTTService.StartSending(UserID);
+                    mqttService.StartSending(UserID);
                 }
             }
             else
             {
                 StartBtnText = StartText;
                 //Todo:Her stoppes målingen
-                MQTTService.StopSending();
+                mqttService.StopSending();
             }
 
             SemanticScreenReader.Announce(StartBtnText);
