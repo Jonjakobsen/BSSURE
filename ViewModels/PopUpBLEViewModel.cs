@@ -47,7 +47,7 @@ namespace Bssure.ViewModels
         public BLEservice BLEservice { get; set; }
         public IRawDataService RawDataSender { get; }
         //public IMQTTService MqttService { get; }
-        private MeasurementPageViewModel MeasurementPageViewModel { get; set; }
+        private MeasurementPageViewModel MeasurementViewModel { get; set; }
         public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender, IDecoder decoder, MeasurementPageViewModel measureVM)
         {
             BLEservice = ble;
@@ -58,7 +58,7 @@ namespace Bssure.ViewModels
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
             CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
-            MeasurementPageViewModel = measureVM;
+            MeasurementViewModel = measureVM;
         }
         async Task ScanDevicesAsync()
         {
@@ -289,12 +289,13 @@ namespace Bssure.ViewModels
         //This is the eventhandler that receives raw samples from the device
         private async void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
-            if (MeasurementPageViewModel.StartBtnText == "Start measurement")
+            if (MeasurementViewModel.StartBtnText == "Start measurement")
             {
                 return;
             }
             else //start measurement button is clicked and text should now be "Stop measurement"
             {
+                MeasurementViewModel.graphThread.Start();
                 var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
                 sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
                 var time = DateTimeOffset.Now.LocalDateTime;

@@ -173,7 +173,7 @@ namespace Bssure.ViewModels
 
             graphThread = new Thread(Dequeue);
             graphThread.IsBackground = true;
-            graphThread.Start();
+            //graphThread.Start(); moved start to characteristic value updated in popupbleviewmodel
         }
 
         private void Dequeue()
