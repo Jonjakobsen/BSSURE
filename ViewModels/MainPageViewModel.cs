@@ -91,7 +91,7 @@ namespace Bssure.ViewModels
         public async void OnBLE_connectClicked()
         {
             //await Shell.Current.GoToAsync(nameof(PopUpBLE), true);
-            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, rawDataSender, decoder)));
+            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, rawDataSender, decoder,new MeasurementPageViewModel())));
             //Shell.Current.CurrentPage.ShowPopup(new PopUpBLE());
 
 

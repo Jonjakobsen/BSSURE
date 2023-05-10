@@ -47,7 +47,8 @@ namespace Bssure.ViewModels
         public BLEservice BLEservice { get; set; }
         public IRawDataService RawDataSender { get; }
         //public IMQTTService MqttService { get; }
-        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender, IDecoder decoder)
+        private MeasurementPageViewModel MeasurementPageViewModel { get; set; }
+        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender, IDecoder decoder, MeasurementPageViewModel measureVM)
         {
             BLEservice = ble;
             RawDataSender = rawDataSender;
@@ -57,7 +58,7 @@ namespace Bssure.ViewModels
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
             CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
-
+            MeasurementPageViewModel = measureVM;
         }
         async Task ScanDevicesAsync()
         {
@@ -288,19 +289,26 @@ namespace Bssure.ViewModels
         //This is the eventhandler that receives raw samples from the device
         private async void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
-            var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
-            sbyte[] bytessigned = Array.ConvertAll(bytes,x=> unchecked((sbyte)x)); 
-            var time = DateTimeOffset.Now.LocalDateTime;
+            if (MeasurementPageViewModel.StartBtnText == "Start measurement")
+            {
+                return;
+            }
+            else //start measurement button is clicked and text should now be "Stop measurement"
+            {
+                var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
+                sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
+                var time = DateTimeOffset.Now.LocalDateTime;
 
-            await Task.Run(() => decoder.DecodeBytes(bytessigned));
+                await Task.Run(() => decoder.DecodeBytes(bytessigned));
 
-            //Add the newest sample to the list
-            EKGSampleDTO item = new EKGSampleDTO {RawBytes = bytessigned, Timestamp = time };
-            EKGSamples.Add(item);
+                //Add the newest sample to the list
+                EKGSampleDTO item = new EKGSampleDTO { RawBytes = bytessigned, Timestamp = time };
+                EKGSamples.Add(item);
 
-            //MQTTService.Publish_RawData(item);
-            _ = sendDataAsync(item);
-            //TODO her skal pushes fra BSSURE til CSSURE
+                _ = sendDataAsync(item);
+
+            }
+
         }
 
         private async Task sendDataAsync(EKGSampleDTO item)

@@ -23,7 +23,7 @@ public class BLEservice
     {
         bleInterface = CrossBluetoothLE.Current;
         AdapterInterface = CrossBluetoothLE.Current.Adapter;
-        AdapterInterface.ScanTimeout = 10000; // scan for 10 seconds
+        AdapterInterface.ScanTimeout = 5000; // scan for 5 seconds
         AdapterInterface.ScanMode = ScanMode.LowLatency; //Low latency is the fastest scan mode, but it uses the most power. Balanced is a good compromise between speed and power consumption. Low power is the slowest scan mode, but it uses the least power.
 
         AdapterInterface.DeviceDiscovered += Adapter_DeviceDiscovered;

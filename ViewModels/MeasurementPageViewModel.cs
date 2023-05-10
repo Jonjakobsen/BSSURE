@@ -31,7 +31,6 @@ namespace Bssure.ViewModels
 
         public ICommand SetDefaultValuesCommand { get; }
         public ICommand BackToMainpageCommand { get; }
-        public Thread graphThread { get; set; }
 
         #endregion
 
@@ -40,6 +39,7 @@ namespace Bssure.ViewModels
         private readonly string StopText = "Stop measurement";
         private readonly BLEservice bleService;
         private readonly IDecoder decoder;
+        public Thread graphThread { get; set; }
 
         #endregion
 

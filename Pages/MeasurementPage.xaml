@@ -41,7 +41,7 @@
 
             <!--https://help.syncfusion.com/maui/cartesian-charts/getting-started-->
             <!--https://help.syncfusion.com/xamarin/charts/working-with-data-->
-            <chart:SfCartesianChart Title="Heyoo">
+            <chart:SfCartesianChart Title="Real Time ECG">
 
                 <chart:SfCartesianChart.XAxes>
                     <chart:DateTimeAxis />

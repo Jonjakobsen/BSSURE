@@ -13,15 +13,15 @@
 
     <ScrollView>
         <VerticalStackLayout>
+            <!--Add a outline style, crashes until a style is defined globally App.xaml. Style="{StaticResource ButtonOutline}"-->
             <Button x:Name="CheckBLE"
 					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
-					Style="{StaticResource ButtonOutline}"
 					Text="Check Bluetooth Availability"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"/>
 
+                <!--Style="{StaticResource ButtonOutline}"-->
             <Button x:Name="ScanNearby"
 					Command="{Binding ScanNearbyDevicesAsyncCommand}"
-					Style="{StaticResource ButtonOutline}"
 					Text="Scan nearby devices"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"/>
 
