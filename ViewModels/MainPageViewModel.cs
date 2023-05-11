@@ -47,6 +47,7 @@ namespace Bssure.ViewModels
 
 
 
+
         public MainPageViewModel(BLEservice bluetoothLEService, IMQTTService mQTTService) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
 
