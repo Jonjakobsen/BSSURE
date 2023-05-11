@@ -31,6 +31,12 @@
                         Command="{Binding SubmitUserIDCommand}"
                         BorderColor="Black"/>
             </StackLayout>
+
+
+            <VerticalStackLayout>
+                <Label Text="Caretaker Email" FontSize="20" />
+                <Entry x:Name="CaretakerEmail" Placeholder="Email@caretaker.dk" Text="{Binding CaretakerEmail}" />
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

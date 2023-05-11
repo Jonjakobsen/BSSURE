@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
@@ -161,7 +162,8 @@ namespace Bssure.Services
         {
             if (Client.IsConnected)
             {
-                var serialData = JsonSerializer.Serialize<UserDataDTO>(data);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var serialData = JsonSerializer.Serialize<UserDataDTO>(data,options);
                 client.Publish(Topics.Topic_UserData+"/"+data.UserId, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
             }
         }
