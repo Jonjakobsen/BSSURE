@@ -56,13 +56,13 @@ namespace Bssure.ViewModels
 
             if (ble.DeviceInterface == null)
             {
-                await ble.ShowToastAsync("No Device Error", $"Nothing to do.");
+                await ble.ShowToastAsync("No device connected", $"You are not connected to a device");
                 return;
             }
 
             if (!ble.bleInterface.IsOn)
             {
-                await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn Bluetooth on and try again.", "OK");
+                await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn bluetooth on and try again.", "OK");
                 return;
             }
 
@@ -105,7 +105,7 @@ namespace Bssure.ViewModels
         {
             if (UserIdEntry == "" || UserIdEntry == null)
             {
-                await Application.Current.MainPage.DisplayAlert("No User ID", $"Input User ID to continue", "OK");
+                await Application.Current.MainPage.DisplayAlert("No user ID", $"Input user ID to continue", "OK");
 
             }
             else

@@ -16,7 +16,7 @@
             <Button x:Name="CheckBLE"
 					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
-					Text="Check Bluetooth Availability"
+					Text="Check bluetooth availability"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"
                     BackgroundColor="White"
                     TextColor="Black"/>
@@ -24,7 +24,7 @@
             <Button x:Name="ScanNearby"
 					Command="{Binding ScanNearbyDevicesAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
-					Text="Scan nearby devices"
+					Text="Scan for nearby devices"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"
                     BackgroundColor="White"
                     TextColor="Black"/>
