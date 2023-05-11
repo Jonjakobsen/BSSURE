@@ -34,6 +34,14 @@ namespace Bssure.ViewModels
             set => SetProperty(ref _UserIdEntry, value);
         }
 
+        private string caretakerEmail;
+
+        public string CaretakerEmail
+        {
+            get => caretakerEmail;
+            set => SetProperty(ref caretakerEmail, value);
+        }
+
 
 
 
@@ -121,17 +129,20 @@ namespace Bssure.ViewModels
         private async void LoadUser()
         {
             string UserID = await SecureStorage.Default.GetAsync("UserID");
+            string Email = await SecureStorage.Default.GetAsync("Email");
 
             if (UserID == null)
             {
                 return;
                 // No value for UserID yet
             }
-
             UserIdEntry = UserID;
+            CaretakerEmail = Email;
         }
         async void StoreUserId(string UserID)
         {
+
+            await SecureStorage.Default.SetAsync("Email", CaretakerEmail);
             await SecureStorage.Default.SetAsync("UserID", UserID);
         }
 
