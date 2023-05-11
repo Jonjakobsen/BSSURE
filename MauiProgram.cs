@@ -7,6 +7,7 @@ using Bssure;
 using Bssure.Services;
 using Syncfusion.Maui.Core.Hosting;
 using Bssure.DecodingBytes;
+using Bssure.Events;
 
 namespace Bssure;
 
@@ -39,8 +40,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<MainPageViewModel>();
         builder.Services.AddSingleton<MeasurementPage>();
         builder.Services.AddSingleton<MeasurementPageViewModel>();
-        //builder.Services.AddSingleton<PopUpBLE>();
-        //builder.Services.AddSingleton<PopUpBLEViewModel>();
+        builder.Services.AddSingleton<PopUpBLE>();
+        builder.Services.AddSingleton<PopUpBLEViewModel>();
+        builder.Services.AddSingleton<IMeasurement, MeasurementPageViewModel>();
 
 
         //builder.Services.AddSingleton registers a singleton service for the specified type, meaning that only one instance of the service will be created and shared across the entire application.

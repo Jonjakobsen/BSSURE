@@ -1,6 +1,7 @@
 ﻿using Bssure.CortriumDevice;
 using Bssure.DecodingBytes;
 using Bssure.DTO;
+using Bssure.Events;
 using Bssure.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -41,14 +42,15 @@ namespace Bssure.ViewModels
 
         public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
 
+        private bool _measurementIsStarted {get; set; }
 
 
 
         public BLEservice BLEservice { get; set; }
         public IRawDataService RawDataSender { get; }
+        private IMeasurement measurement { get; }
         //public IMQTTService MqttService { get; }
-        private MeasurementPageViewModel MeasurementViewModel { get; set; }
-        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender, IDecoder decoder, MeasurementPageViewModel measureVM)
+        public PopUpBLEViewModel(BLEservice ble, IRawDataService rawDataSender, IDecoder decoder, IMeasurement startMeasurement)
         {
             BLEservice = ble;
             RawDataSender = rawDataSender;
@@ -58,8 +60,13 @@ namespace Bssure.ViewModels
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
             CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
-            MeasurementViewModel = measureVM;
+            measurement = startMeasurement;
+            measurement.measurementStartedEvent += Handle_StartMeasurementEvent;
+            _measurementIsStarted = false;
         }
+
+       
+
         async Task ScanDevicesAsync()
         {
 
@@ -286,16 +293,22 @@ namespace Bssure.ViewModels
                 //await Shell.Current.GoToAsync("//MainPage", true);
             }
         }
-        //This is the eventhandler that receives raw samples from the device
+
+        private void Handle_StartMeasurementEvent(object sender, StartMeasurementEvent e)
+        {
+            _measurementIsStarted = e.measurementIsStarted;
+        }
+
+        //This is the eventhandler that receives raw samples from the device, and sends them to the decoder
         private async void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
-            if (MeasurementViewModel.StartBtnText == "Start measurement")
+            if (_measurementIsStarted == false) //start measurement button has not been clicked yet
             {
                 return;
             }
             else //start measurement button is clicked and text should now be "Stop measurement"
             {
-                MeasurementViewModel.graphThread.Start();
+                // Delete me MeasurementViewModel.graphThread.Start();
                 var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
                 sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
                 var time = DateTimeOffset.Now.LocalDateTime;

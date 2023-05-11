@@ -65,7 +65,7 @@ public class BLEservice
 
             if (string.IsNullOrWhiteSpace(deviceIdString))
             {
-                throw new Exception("No device ID stored.");
+                //throw new Exception("No device ID stored.");
             }
 
             if (!Guid.TryParse(deviceIdString, out var deviceId))
@@ -83,7 +83,7 @@ public class BLEservice
             ex is Exception)
         {
             Debug.WriteLine(ex.Message);
-            await ShowToastAsync("Bluetooth Low Energy", $"Error {ex.Message}.");
+            //await ShowToastAsync("Bluetooth Low Energy", $"Error {ex.Message}.");
             return;
         }
     }
@@ -298,7 +298,7 @@ public class BLEservice
             }
             catch
             {
-                await ShowToastAsync("Connection succes", $"Device is connected.");
+                await ShowToastAsync("Connection fail", $"Device is not connected.");
             }
         });
     }

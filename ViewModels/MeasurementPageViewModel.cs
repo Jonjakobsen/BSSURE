@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using Bssure.DecodingBytes;
 using Bssure.Models;
 using System.Diagnostics;
+using Bssure.Events;
 
 namespace Bssure.ViewModels
 {
@@ -23,7 +24,7 @@ namespace Bssure.ViewModels
         public int Y { get; set; }
     }
 
-    public partial class MeasurementPageViewModel : ObservableObject
+    public partial class MeasurementPageViewModel : ObservableObject, IMeasurement
     {
         #region Commands
 
@@ -154,6 +155,10 @@ namespace Bssure.ViewModels
         }
 
         #endregion
+        string UserID = "Unknown";
+        private bool measurementStarted;
+
+        public event EventHandler<StartMeasurementEvent> measurementStartedEvent;
 
         public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService, IDecoder decoder)
         {
@@ -171,9 +176,22 @@ namespace Bssure.ViewModels
             this.bleService = bleService;
             this.decoder = decoder;
 
+            measurementStarted = false; // set intial state of the measurement event
+
             graphThread = new Thread(Dequeue);
             graphThread.IsBackground = true;
             //graphThread.Start(); moved start to characteristic value updated in popupbleviewmodel
+        }
+
+        //default constructor needed 
+        public MeasurementPageViewModel()
+        {
+
+        }
+
+        protected virtual void onStartMeasurmentClicked(StartMeasurementEvent e) //when measurement button is clicked event is fired
+        {
+            measurementStartedEvent?.Invoke(this, e);
         }
 
         private void Dequeue()
@@ -187,7 +205,7 @@ namespace Bssure.ViewModels
                     {
                         //foreach (int sample in item.ECGChannel1)
                         //{
-                         ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = item.ECGChannel1[0] });
+                        ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = item.ECGChannel1[0] });
                         //}
                     }
                     catch (InvalidCastException e)
@@ -204,12 +222,7 @@ namespace Bssure.ViewModels
             }
         }
 
-        public MeasurementPageViewModel()
-        {
 
-        }
-
-        string UserID = "Unknown";
         private async Task OnSendPersonalMetadataAsync()
         {
             float[] csi = new float[] { CSI30, CSI50, CSI100 };
@@ -237,58 +250,41 @@ namespace Bssure.ViewModels
         {
             try
             {
-
-                float ModCSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI30"));
-                float ModCSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI50"));
-                float ModCSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI100"));
-
-                if (ModCSI30FromStorage == null)
+                string temp = await SecureStorage.Default.GetAsync("ModCSI30"); // if one is not saved, the others arent either
+                if (temp == null || temp == "") // No value is associated with the keys
                 {
-                    // No value is associated with the key "MODCsi"
                     ModCSI30 = 1000000; // Set to default instead
                     ModCSI50 = 1000000; // Set to default instead
                     ModCSI100 = 1000000; // Set to default instead
 
-                }
-                else
-                {
-                    ModCSI30 = ModCSI30FromStorage;
-                    ModCSI50 = ModCSI50FromStorage;
-                    ModCSI100 = ModCSI100FromStorage;
-                }
-
-                float CSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI30"));
-                float CSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI50"));
-                float CSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI100"));
-
-                if (ModCSI30FromStorage == null)
-                {
-                    // No value is associated with the key "MODCsi"
+                    
                     CSI30 = 1000000; // Set to default instead
                     CSI50 = 1000000; // Set to default instead
                     CSI100 = 1000000; // Set to default instead
 
+                    RMS = 10000; // Set to default instead
+
                 }
                 else
                 {
+                    float ModCSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI30"));
+                    float ModCSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI50"));
+                    float ModCSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI100"));
+                    ModCSI30 = ModCSI30FromStorage;
+                    ModCSI50 = ModCSI50FromStorage;
+                    ModCSI100 = ModCSI100FromStorage;
+                    float CSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI30"));
+                    float CSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI50"));
+                    float CSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("CSI100"));
                     CSI30 = CSI30FromStorage;
                     CSI50 = CSI50FromStorage;
                     CSI100 = CSI100FromStorage;
+                    float RMSFromStorage = float.Parse(await SecureStorage.Default.GetAsync("RMS"));
+                    RMS = RMSFromStorage;
                 }
-
-                float RMSFromStorage = float.Parse(await SecureStorage.Default.GetAsync("RMS"));
-
-                if (RMSFromStorage == null)
-                {
-                    // No value is associated with the key "RMS"
-                    RMS = 10000; // Set to default instead
-                }
-                else RMS = RMSFromStorage;
                 Changed = false;
 
-
-
-                _ = OnSendPersonalMetadataAsync();
+                _ = OnSendPersonalMetadataAsync();//Send to CSSURE to be used in python csi_calculation and db
             }
             catch (Exception)
             {
@@ -332,15 +328,17 @@ namespace Bssure.ViewModels
                 }
                 else
                 {
-
+                    //fire event and start sending
+                    onStartMeasurmentClicked(new StartMeasurementEvent { measurementIsStarted = true });
                     StartBtnText = StopText;
                     MQTTService.StartSending(UserID);
                 }
             }
-            else
+            else //Her stoppes målingen
             {
                 StartBtnText = StartText;
-                //Todo:Her stoppes målingen
+                //send stop meas. event
+                onStartMeasurmentClicked(new StartMeasurementEvent { measurementIsStarted = false });
                 MQTTService.StopSending();
             }
 
