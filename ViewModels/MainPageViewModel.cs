@@ -41,6 +41,14 @@ namespace Bssure.ViewModels
             set => SetProperty(ref _UserIdEntry, value);
         }
 
+        public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates
+        {
+            get { return _listOfDeviceCandidates; }
+            set
+            {
+                _listOfDeviceCandidates = value;
+            }
+        } //This is the list of devices that is shown in the UI
         private string caretakerEmail;
 
         public string CaretakerEmail
@@ -56,7 +64,6 @@ namespace Bssure.ViewModels
                 _listOfDeviceCandidates = value;
             }
         } //This is the list of devices that is shown in the UI
-
         private ObservableCollection<DeviceCandidate> _listOfDeviceCandidates = new ObservableCollection<DeviceCandidate>(); //This is the list of devices that is shown in the UI
         public IAsyncRelayCommand ScanNearbyDevicesAsyncCommand { get; } //kræver knap
         public IAsyncRelayCommand CheckBluetoothAvailabilityAsyncCommand { get; } //kræver knap
@@ -68,6 +75,8 @@ namespace Bssure.ViewModels
         private ObservableCollection<EKGSampleDTO> _ekgSamples = new ObservableCollection<EKGSampleDTO>();
         public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
 
+        private ObservableCollection<EKGSampleDTO> _ekgSamples = new ObservableCollection<EKGSampleDTO>();
+        public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
 
 
 
