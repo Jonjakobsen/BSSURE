@@ -19,7 +19,7 @@ using System.Diagnostics.Metrics;
 
 namespace Bssure.ViewModels
 {
-    public class ECGGraph
+    public class ECGGraph //this is not the graph itself, but the data that is used to draw the graph. The x and y, that we bind to in xaml.
     {
         public DateTime X { get; set; }
         public int Y { get; set; }
@@ -146,7 +146,7 @@ namespace Bssure.ViewModels
         }
 
         public IMQTTService MQTTService { get; }
-
+        private List<int> bufferForGraph = new List<int>();
 
         private ObservableCollection<ECGGraph> _ecgSamples;
         public ObservableCollection<ECGGraph> ECGSamples
@@ -154,11 +154,9 @@ namespace Bssure.ViewModels
             get => _ecgSamples;
             set => SetProperty(ref _ecgSamples, value);
         }
-
         #endregion
 
         string UserID = "Unknown";
-        private bool measurementStarted;
 
         public event EventHandler<StartMeasurementEventArgs> MeasurementStartedEvent;
 
@@ -177,8 +175,6 @@ namespace Bssure.ViewModels
             MQTTService = mQTTService;
             this.bleService = bleService;
             this.decoder = decoder;
-
-            measurementStarted = false; // set intial state of the measurement event
 
             decoder.ECGDataReceivedEvent += HandleECGDataReceivedEvent;
 
@@ -202,9 +198,20 @@ namespace Bssure.ViewModels
         {
             try
             { 
-                if (ECGSamples.Count % 21 == 0)
+                foreach (var sample in e.ECGBatch.ECGChannel1)
+                {
+                    bufferForGraph.Add(sample);
+                }
+
+                //buffer for 3 seconds, so that graph isnt overpopulated
+                if (bufferForGraph.Count() != 756) //check if there is 756 samples in the buffer ECGSamples
+                {
+                    return;    
+                }
+                else
                 {
                     ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = e.ECGBatch.ECGChannel1[0] });
+                    bufferForGraph.Clear(); //Clear the collection, to get a new buffer for next 3 sec.
                 }
             }
             catch (InvalidCastException ex)
@@ -212,10 +219,10 @@ namespace Bssure.ViewModels
                 Debug.WriteLine(ex.Message);
             }
 
-            if (ECGSamples.Count % 252 == 0)
-            {
-                ECGSamples.RemoveAt(0);
-            }
+            //if (ECGSamples.Count % 252 == 0)
+            //{
+            //    ECGSamples.RemoveAt(0);
+            //}
         }
 
         private void Dequeue()
