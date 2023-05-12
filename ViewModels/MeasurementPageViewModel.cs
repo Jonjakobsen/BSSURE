@@ -155,20 +155,22 @@ namespace Bssure.ViewModels
             float[] modcsi = new float[] { ModCSI30, ModCSI50, ModCSI100 };
 
             UserID = await SecureStorage.Default.GetAsync("UserID");
+            string email = await SecureStorage.Default.GetAsync("Email");
 
-            UserDataDTO userDataDTO = new UserDataDTO { CSINormMax = csi, ModCSINormMax = modcsi, UserId = UserID };
+            UserDataDTO userDataDTO = new UserDataDTO { CSINormMax = csi, ModCSINormMax = modcsi, UserId = UserID , Emails= new string[] { email } };
 
             mqttService.PublishMetaData(userDataDTO);
         }
 
         private void OnSetDefaultValuesClicked()
         {
-            ModCSI30 = 1000000;
-            ModCSI50 = 1000000;
-            ModCSI100 = 1000000;
-            CSI30 = 1000000;
-            CSI50 = 1000000;
-            CSI100 = 1000000;
+
+            ModCSI30 = 9074;
+            ModCSI50 = 8485;
+            ModCSI100 = 8719;
+            CSI30 = 15.35f;
+            CSI50 = 15.49f;
+            CSI100 = 17.31f;
             RMS = 10000;
         }
 
@@ -248,6 +250,8 @@ namespace Bssure.ViewModels
                 await SecureStorage.Default.SetAsync("RMS", RMS.ToString());
 
                 Changed = false;
+
+                _ = OnSendPersonalMetadataAsync();
                 await Application.Current.MainPage.DisplayAlert("Saved", "You have saved your parameters", "OK");
             }
             catch (Exception)

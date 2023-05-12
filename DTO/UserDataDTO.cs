@@ -11,6 +11,7 @@ namespace Bssure.DTO
         public string UserId { get; set; }
         public float[] CSINormMax { get; set; }
         public float[] ModCSINormMax { get; set; }
+        public string[] Emails { get; set; }
 
     }
 }
