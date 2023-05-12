@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace Bssure.ViewModels
 {
-    public class PopUpBLEViewModel : BaseViewModel
+    public class PopUpBLEViewModel : BaseViewModel, IPopUpBLEViewModel
     {
         public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates
         {
@@ -42,7 +42,7 @@ namespace Bssure.ViewModels
 
         public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
 
-        private bool _measurementIsStarted {get; set; }
+        private bool _measurementIsStarted { get; set; }
 
 
 
@@ -61,11 +61,14 @@ namespace Bssure.ViewModels
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
             CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
             measurement = startMeasurement;
-            measurement.measurementStartedEvent += Handle_StartMeasurementEvent;
+            measurement.MeasurementStartedEvent += HandleStartMeasurementEvent;
             _measurementIsStarted = false;
         }
 
-       
+        public PopUpBLEViewModel()
+        {
+
+        }
 
         async Task ScanDevicesAsync()
         {
@@ -294,9 +297,9 @@ namespace Bssure.ViewModels
             }
         }
 
-        private void Handle_StartMeasurementEvent(object sender, StartMeasurementEvent e)
+        private void HandleStartMeasurementEvent(object sender, StartMeasurementEventArgs e)
         {
-            _measurementIsStarted = e.measurementIsStarted;
+            _measurementIsStarted = e.MeasurementIsStarted;
         }
 
         //This is the eventhandler that receives raw samples from the device, and sends them to the decoder

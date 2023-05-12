@@ -15,6 +15,7 @@ using Bssure.DecodingBytes;
 using Bssure.Models;
 using System.Diagnostics;
 using Bssure.Events;
+using System.Diagnostics.Metrics;
 
 namespace Bssure.ViewModels
 {
@@ -155,10 +156,11 @@ namespace Bssure.ViewModels
         }
 
         #endregion
+
         string UserID = "Unknown";
         private bool measurementStarted;
 
-        public event EventHandler<StartMeasurementEvent> measurementStartedEvent;
+        public event EventHandler<StartMeasurementEventArgs> MeasurementStartedEvent;
 
         public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService, IDecoder decoder)
         {
@@ -169,7 +171,7 @@ namespace Bssure.ViewModels
             ECGSamples = new ObservableCollection<ECGGraph>();
 
             SaveAllParametersCommand = new RelayCommand(SaveUserValues);
-            StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
+            StartMeasurementCommand = new RelayCommand(OnstartMeasurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
             MQTTService = mQTTService;
@@ -178,9 +180,11 @@ namespace Bssure.ViewModels
 
             measurementStarted = false; // set intial state of the measurement event
 
-            graphThread = new Thread(Dequeue);
-            graphThread.IsBackground = true;
-            //graphThread.Start(); moved start to characteristic value updated in popupbleviewmodel
+            decoder.ECGDataReceivedEvent += HandleECGDataReceivedEvent;
+
+            //graphThread = new Thread(Dequeue);
+            //graphThread.IsBackground = true;
+            //graphThread.Start(); //moved start to characteristic value updated in popupbleviewmodel
         }
 
         //default constructor needed 
@@ -189,37 +193,57 @@ namespace Bssure.ViewModels
 
         }
 
-        protected virtual void onStartMeasurmentClicked(StartMeasurementEvent e) //when measurement button is clicked event is fired
+        protected virtual void OnStartMeasurmentClicked(StartMeasurementEventArgs e) //when measurement button is clicked event is fired
         {
-            measurementStartedEvent?.Invoke(this, e);
+            MeasurementStartedEvent?.Invoke(this, e);
+        }
+
+        private void HandleECGDataReceivedEvent(object sender, ECGDataReceivedEventArgs e)
+        {
+            try
+            { 
+                if (ECGSamples.Count % 21 == 0)
+                {
+                    ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = e.ECGBatch.ECGChannel1[0] });
+                }
+            }
+            catch (InvalidCastException ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+
+            //if (ECGSamples.Count % 252 == 0)
+            //{
+            //    ECGSamples.Clear();
+            //}
         }
 
         private void Dequeue()
         {
-            while (true) //TODO: make another flag
-            {
-                Thread.Sleep(1000);
-                if (decoder.ECGBatchDataQueue.TryTake(out ECGBatchData item, 1000))
-                {
-                    try
-                    {
-                        //foreach (int sample in item.ECGChannel1)
-                        //{
-                        ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = item.ECGChannel1[0] });
-                        //}
-                    }
-                    catch (InvalidCastException e)
-                    {
-                        Debug.WriteLine(e.Message);
-                    }
+            //while (true) //TODO: make another flag
+            //{
+            //    Thread.Sleep(1000);
+            //    if (decoder.ECGBatchDataQueue.TryTake(out ECGBatchData item, 1000))
+            //    {
+            //        try
+            //        {
+            //            //foreach (int sample in item.ECGChannel1)
+            //            //{
+            //            ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = item.ECGChannel1[0] });
+            //            //}
+            //        }
+            //        catch (InvalidCastException e)
+            //        {
+            //            Debug.WriteLine(e.Message);
+            //        }
 
-                    if (ECGSamples.Count % 252 == 0)
-                    {
-                        ECGSamples.Clear();
-                        // System.InvalidOperationException: 'Cannot change ObservableCollection during a CollectionChanged event.'
-                    }
-                }
-            }
+            //        if (ECGSamples.Count % 252 == 0)
+            //        {
+            //            ECGSamples.Clear();
+            //            // System.InvalidOperationException: 'Cannot change ObservableCollection during a CollectionChanged event.'
+            //        }
+            //    }
+            //}
         }
 
 
@@ -257,7 +281,7 @@ namespace Bssure.ViewModels
                     ModCSI50 = 1000000; // Set to default instead
                     ModCSI100 = 1000000; // Set to default instead
 
-                    
+
                     CSI30 = 1000000; // Set to default instead
                     CSI50 = 1000000; // Set to default instead
                     CSI100 = 1000000; // Set to default instead
@@ -314,7 +338,7 @@ namespace Bssure.ViewModels
             }
         }
 
-        async private void Onstart_measurementClicked()
+        async private void OnstartMeasurementClicked()
         {
 
             if (StartBtnText == StartText)
@@ -329,7 +353,7 @@ namespace Bssure.ViewModels
                 else
                 {
                     //fire event and start sending
-                    onStartMeasurmentClicked(new StartMeasurementEvent { measurementIsStarted = true });
+                    OnStartMeasurmentClicked(new StartMeasurementEventArgs { MeasurementIsStarted = true });
                     StartBtnText = StopText;
                     MQTTService.StartSending(UserID);
                 }
@@ -338,7 +362,7 @@ namespace Bssure.ViewModels
             {
                 StartBtnText = StartText;
                 //send stop meas. event
-                onStartMeasurmentClicked(new StartMeasurementEvent { measurementIsStarted = false });
+                OnStartMeasurmentClicked(new StartMeasurementEventArgs { MeasurementIsStarted = false });
                 MQTTService.StopSending();
             }
 

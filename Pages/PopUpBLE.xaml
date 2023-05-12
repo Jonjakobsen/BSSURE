@@ -8,7 +8,9 @@
              xmlns:model="clr-namespace:Bssure.CortriumDevice"
              xmlns:viewmodel="clr-namespace:Bssure.ViewModels">
 
-
+    <mct:Popup.BindingContext>
+        <viewmodel:PopUpBLEViewModel/>
+    </mct:Popup.BindingContext>
 
 
     <ScrollView>

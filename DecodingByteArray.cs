@@ -1,4 +1,5 @@
-﻿using Bssure.Models;
+﻿using Bssure.Events;
+using Bssure.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
@@ -15,9 +16,10 @@ namespace Bssure.DecodingBytes
         public BlockingCollection<ECGBatchData> ECGBatchDataQueue { get; set; }
     }
 
-    public interface IDecoder : ICommunication
+    public interface IDecoder
     {
         public void DecodeBytes(sbyte[] data);
+        event EventHandler<ECGDataReceivedEventArgs> ECGDataReceivedEvent;
     }
 
     public class DecodingByteArray : IDecoder
@@ -39,12 +41,18 @@ namespace Bssure.DecodingBytes
         private float ERROR_CODE_CONVERT_V_BAT_CALCULATION_FAILED = -1f;
 
         // Graph
-        public BlockingCollection<ECGBatchData> ECGBatchDataQueue { get; set;}
+        //public BlockingCollection<ECGBatchData> ECGBatchDataQueue { get; set; }
+        public event EventHandler<ECGDataReceivedEventArgs> ECGDataReceivedEvent;
         #endregion
 
         public DecodingByteArray()
         {
-            ECGBatchDataQueue = new BlockingCollection<ECGBatchData>();
+            //ECGBatchDataQueue = new BlockingCollection<ECGBatchData>();
+        }
+
+        protected virtual void OnECGDataReceived(ECGDataReceivedEventArgs e) //when measurement button is clicked event is fired
+        {
+            ECGDataReceivedEvent?.Invoke(this, e);
         }
 
         public void DecodeBytes(sbyte[] data)
@@ -232,7 +240,8 @@ namespace Bssure.DecodingBytes
 
             try
             {
-                ECGBatchDataQueue.Add(ecgData);
+                //ECGBatchDataQueue.Add(ecgData);
+                OnECGDataReceived(new ECGDataReceivedEventArgs { ECGBatch = ecgData });
             }
             catch
             {

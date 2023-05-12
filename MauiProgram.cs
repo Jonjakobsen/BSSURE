@@ -14,20 +14,20 @@ namespace Bssure;
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
-	{
-		var builder = MauiApp.CreateBuilder();
+    {
+        var builder = MauiApp.CreateBuilder();
 
         // Initialise the toolkit
         //builder.UseMauiApp<App>().UseMauiCommunityToolkitCore();
         builder.UseMauiCommunityToolkit();
         builder
-			.UseMauiApp<App>()
+            .UseMauiApp<App>()
             .ConfigureSyncfusionCore()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			});
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 #if ANDROID
         builder.Services.AddSingleton<BLEservice>();
 #endif
@@ -39,9 +39,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<MainPageViewModel>();
         builder.Services.AddSingleton<MeasurementPage>();
-        builder.Services.AddSingleton<MeasurementPageViewModel>();
+        //builder.Services.AddSingleton<MeasurementPageViewModel>();
         builder.Services.AddSingleton<PopUpBLE>();
-        builder.Services.AddSingleton<PopUpBLEViewModel>();
+        builder.Services.AddSingleton<IPopUpBLEViewModel, PopUpBLEViewModel>();
         builder.Services.AddSingleton<IMeasurement, MeasurementPageViewModel>();
 
 
@@ -49,12 +49,12 @@ public static class MauiProgram
         //So, builder.Services.AddSingleton<Class>() will register Class as a singleton service in the dependency injection container.
         //Whenever a component requests an instance of AviewmodelClass, the same instance will be returned.
 
-        
+
 
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
         builder.Services.AddSingleton<IGeolocation>(Geolocation.Default);
         builder.Services.AddSingleton<IMap>(Map.Default);
         return builder.Build();
-	}
+    }
 
 }

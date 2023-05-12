@@ -4,7 +4,7 @@ namespace Bssure.Pages;
 
 public partial class PopUpBLE 
 {
-    public PopUpBLE(PopUpBLEViewModel vm)
+    public PopUpBLE(IPopUpBLEViewModel vm) //PopUpBLEViewModel vm
     {
         InitializeComponent();
         BindingContext = vm;

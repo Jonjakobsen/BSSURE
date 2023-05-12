@@ -31,6 +31,7 @@ namespace Bssure.ViewModels
 
         private string _UserIdEntry;
         private readonly IDecoder decoder;
+        private readonly PopUpBLE popUpBLE;
 
         public string UserIdEntry
         {
@@ -39,11 +40,7 @@ namespace Bssure.ViewModels
         }
 
 
-
-
-
-
-        public MainPageViewModel(BLEservice bluetoothLEService, IRawDataService rawDataService, IDecoder decoder, IMeasurement measurement ) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
+        public MainPageViewModel(BLEservice bluetoothLEService, IRawDataService rawDataService, IDecoder decoder, IMeasurement measurement, PopUpBLE popUpBLE) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
 
             ble = bluetoothLEService;
@@ -54,6 +51,7 @@ namespace Bssure.ViewModels
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
             measurementStarted = measurement;
+            this.popUpBLE = popUpBLE;
         }
 
 
@@ -94,7 +92,7 @@ namespace Bssure.ViewModels
         public async void OnBLE_connectClicked()
         {
             //await Shell.Current.GoToAsync(nameof(PopUpBLE), true);
-            Shell.Current.CurrentPage.ShowPopup(new PopUpBLE(new PopUpBLEViewModel(ble, rawDataSender, decoder, measurementStarted)));
+            Shell.Current.CurrentPage.ShowPopup(popUpBLE); //new PopUpBLEViewModel(ble, rawDataSender, decoder, measurementStarted
             //Shell.Current.CurrentPage.ShowPopup(new PopUpBLE());
 
 
