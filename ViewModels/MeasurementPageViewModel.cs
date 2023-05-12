@@ -212,10 +212,10 @@ namespace Bssure.ViewModels
                 Debug.WriteLine(ex.Message);
             }
 
-            //if (ECGSamples.Count % 252 == 0)
-            //{
-            //    ECGSamples.Clear();
-            //}
+            if (ECGSamples.Count % 252 == 0)
+            {
+                ECGSamples.RemoveAt(0);
+            }
         }
 
         private void Dequeue()
