@@ -1,4 +1,5 @@
-﻿using Bssure.CortriumDevice;
+﻿using Bssure.Constants;
+using Bssure.CortriumDevice;
 using Bssure.DTO;
 using Microsoft.Extensions.Logging;
 using System;
@@ -162,19 +163,5 @@ namespace Bssure.Services
         }
 
         
-    }
-
-
-    public static class Topics
-    {
-        public const string
-
-            Topic_Status_CSSURE = "ECG/Status/CSSURE",
-            Topic_Status_BSSURE = "ECG/Status/BSSURE",
-
-
-            Topic_UserData = "ECG/Userdata",
-            Topic_Series_FromBSSURE = "ECG/Series/BSSURE2CSSURE",
-            Topic_Series_TempToBSSURE = "ECG/Temp/ToBSSURE";
     }
 }
