@@ -6,24 +6,22 @@
 			 x:DataType="viewmodel:MainPageViewModel"
              xmlns:model="clr-namespace:Bssure.CortriumDevice"
              xmlns:viewmodel="clr-namespace:Bssure.ViewModels"
-             Shell.NavBarIsVisible="false">
-	
+             Shell.NavBarIsVisible="false"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui">
+
+
+
+             
+
+
+
 
     <ScrollView>
         <VerticalStackLayout Spacing="50" 
             Padding="20,0" VerticalOptions="Start">
-            <Image Source="cortrium.png" SemanticProperties.Description="Cortrium logo" HeightRequest="100" HorizontalOptions="Center" Margin="0,50,0,0" />
+            <Image Source="cortrium.png"  HeightRequest="100" HorizontalOptions="Center" Margin="0,50,0,0" />
 
-            <Button x:Name="BLE_connect" 
-                    Text="Connect to bluetooth" 
-                    Command="{Binding BLEConnectCommand}" 
-                    BackgroundColor="Honeydew" 
-                    TextColor="Black"
-                    BorderColor="Black" />
 
-            <Button x:Name="BLE_disconnect"
-                    Text="Disconnect from bluetooth"
-                    Command="{Binding BLEDisconnectCommand}"/>
 
 
 
@@ -39,9 +37,58 @@
 
 
             <VerticalStackLayout>
-                <Label Text="Caretaker Email" FontSize="20" />
-                <Entry x:Name="CaretakerEmail" Placeholder="Email@caretaker.dk" Text="{Binding CaretakerEmail}" />
+                <Label Text="Email" Margin="10" />
+                <Entry x:Name="Email"  Placeholder="Email" Text="{Binding CaretakerEmail}" />
             </VerticalStackLayout>
+
+            <Button x:Name="CheckBLE"
+					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
+					Style="{StaticResource ButtonOutline}"
+					Text="Check bluetooth availability"
+					AbsoluteLayout.LayoutBounds="1,1,100,50"
+                    BackgroundColor="White"
+                    TextColor="Black"/>
+
+            <Button x:Name="BLE_disconnect"
+                    Text="Disconnect from bluetooth"
+                    Command="{Binding BLEDisconnectCommand}"
+                    BackgroundColor="Honeydew" 
+                    TextColor="Black"
+                    BorderColor="Black"/>
+
+            <Button x:Name="ScanNearby"
+					Command="{Binding ScanNearbyDevicesAsyncCommand}"
+					Style="{StaticResource ButtonOutline}"
+					Text="Scan for nearby devices"
+					AbsoluteLayout.LayoutBounds="1,1,100,50"
+                    BackgroundColor="White"
+                    TextColor="Black"/>
+
+            <CollectionView x:Name="MainPageListOfDevices"
+                            ItemsSource="{Binding ListOfDeviceCandidates}"
+                            SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout  Orientation="Vertical"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="model:DeviceCandidate">
+                        <Grid Padding="10">
+                            <Frame>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, 
+                                                  Path=ConnectToDeviceCandidateAsyncCommand}"
+                                        CommandParameter="{Binding .}"/>
+                                    <!-- This is the binding to the current item indicated by the Binding dot -->
+                                </Frame.GestureRecognizers>
+                                <VerticalStackLayout Padding="8">
+                                    <Label Text="{Binding Name}" TextColor="Black"/>
+                                </VerticalStackLayout>
+                            </Frame>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
