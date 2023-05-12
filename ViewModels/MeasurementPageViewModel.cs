@@ -198,7 +198,7 @@ namespace Bssure.ViewModels
         {
             try
             { 
-                foreach (var sample in e.ECGBatch.ECGChannel1)
+                foreach (var sample in e.ECGBatch.ECGChannel1) //loop through the received ECG Bath 
                 {
                     bufferForGraph.Add(sample);
                 }
@@ -210,7 +210,7 @@ namespace Bssure.ViewModels
                 }
                 else
                 {
-                    ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = e.ECGBatch.ECGChannel1[0] });
+                    ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = e.ECGBatch.ECGChannel1[0] }); //Take one of the 12 samples to not overpopulate graph
                     bufferForGraph.Clear(); //Clear the collection, to get a new buffer for next 3 sec.
                 }
             }
