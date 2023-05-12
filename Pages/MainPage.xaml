@@ -23,13 +23,6 @@
 
 
 
-            <Button x:Name="BLE_disconnect"
-                    Text="Disconnect from bluetooth"
-                    Command="{Binding BLEDisconnectCommand}"
-                    BackgroundColor="Honeydew" 
-                    TextColor="Black"
-                    BorderColor="Black"/>
-
 
 
             <StackLayout>
@@ -42,6 +35,12 @@
                         BorderColor="Black"/>
             </StackLayout>
 
+
+            <VerticalStackLayout>
+                <Label Text="Email" Margin="10" />
+                <Entry x:Name="Email"  Placeholder="Email" Text="{Binding CaretakerEmail}" />
+            </VerticalStackLayout>
+
             <Button x:Name="CheckBLE"
 					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
@@ -49,6 +48,13 @@
 					AbsoluteLayout.LayoutBounds="1,1,100,50"
                     BackgroundColor="White"
                     TextColor="Black"/>
+
+            <Button x:Name="BLE_disconnect"
+                    Text="Disconnect from bluetooth"
+                    Command="{Binding BLEDisconnectCommand}"
+                    BackgroundColor="Honeydew" 
+                    TextColor="Black"
+                    BorderColor="Black"/>
 
             <Button x:Name="ScanNearby"
 					Command="{Binding ScanNearbyDevicesAsyncCommand}"
