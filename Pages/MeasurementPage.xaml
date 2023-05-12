@@ -19,7 +19,6 @@
 
             <Image
                 Source="cortrium.png"
-                SemanticProperties.Description="Cortrium logo"
                 HeightRequest="100"
                 HorizontalOptions="Center"
                 Margin="0,50,0,0"/>
@@ -27,7 +26,6 @@
             <Button
                 x:Name="start_measurement"
                 Text="{Binding Path=StartBtnText , Mode=TwoWay}"
-                SemanticProperties.Hint="Starts the measurement"
                 Command="{Binding StartMeasurementCommand}"
                 HorizontalOptions="Center"
                 FontSize="16"                
