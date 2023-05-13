@@ -133,9 +133,10 @@ namespace Bssure.ViewModels
         public IMQTTService mqttService { get; }
         #endregion
 
-        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice bleService)
+        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice ble)
         {
             System.Threading.Thread.Sleep(100);
+            mqttService = mQTTService;
             OnSetDefaultValuesClicked();
             LoadUserValues();
             StartBtnText = StartText;
@@ -144,8 +145,7 @@ namespace Bssure.ViewModels
             StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
-            mqttService = mQTTService;
-            this.bleService = bleService;
+            bleService = ble;
         }
 
         string UserID = "Unknown";
@@ -179,7 +179,7 @@ namespace Bssure.ViewModels
             try
             {
 
-                float ModCSI30FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI30"));
+                var ModCSI30FromStorage = await SecureStorage.Default.GetAsync("ModCSI30");
                 float ModCSI50FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI50"));
                 float ModCSI100FromStorage = float.Parse(await SecureStorage.Default.GetAsync("ModCSI100"));
 
@@ -193,7 +193,7 @@ namespace Bssure.ViewModels
                 }
                 else
                 {
-                    ModCSI30 = ModCSI30FromStorage;
+                    ModCSI30 = float.Parse(ModCSI30FromStorage);
                     ModCSI50 = ModCSI50FromStorage;
                     ModCSI100 = ModCSI100FromStorage;
                 }
@@ -217,14 +217,14 @@ namespace Bssure.ViewModels
                     CSI100 = CSI100FromStorage;
                 }
 
-                float RMSFromStorage = float.Parse(await SecureStorage.Default.GetAsync("RMS"));
+                var RMSFromStorage = await SecureStorage.Default.GetAsync("RMS");
 
                 if (RMSFromStorage == null)
                 {
                     // No value is associated with the key "RMS"
                     RMS = 10000; // Set to default instead
                 }
-                else RMS = RMSFromStorage;
+                else RMS = float.Parse(RMSFromStorage);
                 Changed = false;
 
 

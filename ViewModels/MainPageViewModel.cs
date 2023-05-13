@@ -26,7 +26,7 @@ namespace Bssure.ViewModels
     public class MainPageViewModel : ObservableObject
     {
 
-        public BLEservice ble { get; private set; } //This is the service that is injected into the viewmodel, that handles Plugin.Ble
+        //public IBLEservice ble { get; private set; } //This is the service that is injected into the viewmodel, that handles Plugin.Ble
         public IMQTTService mqttService { get; }
 
         public ICommand BLEDisconnectCommand { get; }
@@ -72,7 +72,6 @@ namespace Bssure.ViewModels
 
 
         public BLEservice BLEservice { get; set; }
-        //public IMQTTService MqttService { get; }
 
 
 
@@ -83,6 +82,7 @@ namespace Bssure.ViewModels
             BLEDisconnectCommand = new RelayCommand(OnBLE_disconnectClicked);
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
+
 
             BLEservice = ble;
             ListOfDeviceCandidates = new ObservableCollection<DeviceCandidate>();

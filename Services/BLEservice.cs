@@ -249,7 +249,7 @@ public class BLEservice
     #region DeviceEventArgs 
 
     //This method will sort for devices that are already connected or paired to the system.
-    private async void Adapter_DeviceDiscovered(object sender, DeviceEventArgs e)
+    private void Adapter_DeviceDiscovered(object sender, DeviceEventArgs e)
     {
         DeviceCandidate deviceCandidate = DeviceList.FirstOrDefault(d => d.Id == e.Device.Id); //this will check if the device is already in the "global" list
         if (deviceCandidate == null)

@@ -24,9 +24,49 @@ namespace Bssure.Services
         void PublishMetaData(UserDataDTO data);
 
         void StartSending(string userId);
-        void StopSending();
+        void StopSending(); 
 
     }
+
+    class MqttServiceMock : IMQTTService
+    {
+        public MqttServiceMock()
+        {
+            Debug.WriteLine("MetodH: MqttServiceMock");
+
+        }
+        public void CloseConncetion()
+        {
+            Debug.WriteLine("MetodH: CloseConncetion");
+        }
+
+        public void OpenConncetion()
+        {
+            Debug.WriteLine("MetodH: OpenConncetion");
+        }
+
+        public void PublishMetaData(UserDataDTO data)
+        {
+            Debug.WriteLine("MetodH: PublishMetaData");
+        }
+
+        public void Publish_RawData(EKGSampleDTO data)
+        {
+            Debug.WriteLine("MetodH: Publish_RawData");
+        }
+
+        public void StartSending(string userId)
+        {
+            Debug.WriteLine("MetodH: StartSending");
+        }
+
+        public void StopSending()
+        {
+            Debug.WriteLine("MetodH: StopSending");
+        }
+    }
+
+
 
     class MqttService : IMQTTService
     {
@@ -144,8 +184,8 @@ namespace Bssure.Services
             {
                 Debug.WriteLine("Sending MetaData");
                 var options = new JsonSerializerOptions { WriteIndented = true };
-                var serialData = JsonSerializer.Serialize<UserDataDTO>(data,options);
-                client.Publish(Topics.Topic_UserData+"/"+data.UserId, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
+                var serialData = JsonSerializer.Serialize<UserDataDTO>(data, options);
+                client.Publish(Topics.Topic_UserData + "/" + data.UserId, Encoding.UTF8.GetBytes(serialData), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
             }
         }
 
@@ -160,8 +200,6 @@ namespace Bssure.Services
         {
             Started = false;
         }
-
-        
     }
 
 
