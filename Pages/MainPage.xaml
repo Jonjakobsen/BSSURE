@@ -11,7 +11,7 @@
 
 
 
-             
+
 
 
 
@@ -23,11 +23,15 @@
 
 
 
-
-
             <StackLayout>
-                <Label Text="Enter your user ID:" FontSize="20" />
-                <Entry x:Name="UserIdEntry" Placeholder="User ID" Text="{Binding UserIdEntry}" />
+                <VerticalStackLayout>
+                    <Label Text="Enter your user ID:" FontSize="20" />
+                    <Entry x:Name="UserIdEntry" Placeholder="User ID" Text="{Binding UserIdEntry}" />
+                </VerticalStackLayout>
+                <VerticalStackLayout>
+                    <Label Text="Enter your caretakers email address" FontSize="15" />
+                    <Entry x:Name="Email"  Placeholder="Email" Text="{Binding CaretakerEmail}" />
+                </VerticalStackLayout>
                 <Button Text="Submit" 
                         BackgroundColor="Honeydew"
                         TextColor="Black"
@@ -36,12 +40,18 @@
             </StackLayout>
 
 
-            <VerticalStackLayout>
-                <Label Text="Email" Margin="10" />
-                <Entry x:Name="Email"  Placeholder="Email" Text="{Binding CaretakerEmail}" />
-            </VerticalStackLayout>
 
-            <Button x:Name="CheckBLE"
+            <Border 
+                
+                StrokeThickness="0"
+                Padding="5,20"
+                StrokeShape="RoundRectangle 20,20,20,20"
+                Background="#2B0B98">
+                <VerticalStackLayout Spacing="20" 
+            Padding="0,0" VerticalOptions="Start">
+                    <Label Text="Bluetooth option" FontSize="25" HorizontalOptions="Center" />
+
+                    <Button x:Name="CheckBLE"
 					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
 					Text="Check bluetooth availability"
@@ -49,46 +59,50 @@
                     BackgroundColor="White"
                     TextColor="Black"/>
 
-            <Button x:Name="BLE_disconnect"
-                    Text="Disconnect from bluetooth"
-                    Command="{Binding BLEDisconnectCommand}"
-                    BackgroundColor="Honeydew" 
-                    TextColor="Black"
-                    BorderColor="Black"/>
-
-            <Button x:Name="ScanNearby"
+                    <Button x:Name="ScanNearby"
 					Command="{Binding ScanNearbyDevicesAsyncCommand}"
 					Style="{StaticResource ButtonOutline}"
-					Text="Scan for nearby devices"
+					Text="{Binding BleNotScaning}"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"
                     BackgroundColor="White"
                     TextColor="Black"/>
 
-            <CollectionView x:Name="MainPageListOfDevices"
+
+                    <Button x:Name="BLE_disconnect"
+                    Text="Disconnect from bluetooth"
+                    Command="{Binding BLEDisconnectCommand}"
+                    BackgroundColor="Honeydew" 
+                    TextColor="Black"
+                    BorderColor="Black"
+                            IsVisible="{Binding BleConnected}"/>
+
+                    <CollectionView x:Name="MainPageListOfDevices"
                             ItemsSource="{Binding ListOfDeviceCandidates}"
                             SelectionMode="None">
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout  Orientation="Vertical"/>
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="model:DeviceCandidate">
-                        <Grid Padding="10">
-                            <Frame>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer 
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout  Orientation="Vertical"/>
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="model:DeviceCandidate">
+                                <Grid Padding="10">
+                                    <Frame>
+                                        <Frame.GestureRecognizers>
+                                            <TapGestureRecognizer 
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, 
                                                   Path=ConnectToDeviceCandidateAsyncCommand}"
                                         CommandParameter="{Binding .}"/>
-                                    <!-- This is the binding to the current item indicated by the Binding dot -->
-                                </Frame.GestureRecognizers>
-                                <VerticalStackLayout Padding="8">
-                                    <Label Text="{Binding Name}" TextColor="Black"/>
-                                </VerticalStackLayout>
-                            </Frame>
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                                            <!-- This is the binding to the current item indicated by the Binding dot -->
+                                        </Frame.GestureRecognizers>
+                                        <VerticalStackLayout Padding="8">
+                                            <Label Text="{Binding Name}" TextColor="Black"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

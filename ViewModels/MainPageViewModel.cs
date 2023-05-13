@@ -49,6 +49,7 @@ namespace Bssure.ViewModels
             get => caretakerEmail;
             set => SetProperty(ref caretakerEmail, value);
         }
+
         public ObservableCollection<DeviceCandidate> ListOfDeviceCandidates
         {
             get { return _listOfDeviceCandidates; }
@@ -69,6 +70,24 @@ namespace Bssure.ViewModels
         public ObservableCollection<EKGSampleDTO> EKGSamples { get { return _ekgSamples; } set { _ekgSamples = value; } }
 
 
+        private string textnotScanning = "Scan for nearby devices";
+        private string textScanning = "Scanning";
+
+        private string bleNotScaning = "Scan for nearby devices";
+
+        public string BleNotScaning
+        {
+            get => bleNotScaning;
+            set => SetProperty(ref bleNotScaning, value);
+        }
+
+        private bool bleConnceted;
+
+        public bool BleConnected
+        {
+            get => bleConnceted;
+            set => SetProperty(ref bleConnceted, value);
+        }
 
 
         public BLEservice BLEservice { get; set; }
@@ -94,7 +113,7 @@ namespace Bssure.ViewModels
 
         private async void OnBLE_disconnectClicked()
         {
-
+            BleConnected = false;
 
             if (BLEservice.DeviceInterface == null)
             {
@@ -181,12 +200,15 @@ namespace Bssure.ViewModels
             await SecureStorage.Default.SetAsync("UserID", UserID);
         }
 
-
-
         async Task ScanDevicesAsync()
         {
+            Thread thread1 = new Thread(ScanThreaded);
+            thread1.Start();
+        }
 
-
+        public async void ScanThreaded()
+        {
+            BleNotScaning = textScanning;
             if (!BLEservice.bleInterface.IsAvailable)
             {
                 Debug.WriteLine($"Bluetooth is missing.");
@@ -249,7 +271,7 @@ namespace Bssure.ViewModels
                 Debug.WriteLine($"Unable to get nearby Bluetooth LE devices: {ex.Message}");
                 await Shell.Current.DisplayAlert($"Unable to get nearby Bluetooth LE devices", $"{ex.Message}.", "OK");
             }
-
+            BleNotScaning = textnotScanning;
         }
         async Task CheckBluetoothAvailabilityAsync()
         {
@@ -282,7 +304,7 @@ namespace Bssure.ViewModels
         private async Task ConnectToDeviceCandidateAsync(DeviceCandidate deviceCandidate)
         {
             BLEservice.BleDevice = deviceCandidate;
-
+            
 
             if (!BLEservice.bleInterface.IsOn)
             {
@@ -317,6 +339,7 @@ namespace Bssure.ViewModels
                                 Debug.WriteLine($"Disconnected: {BLEservice.BleDevice.Name}");
                                 await DisconnectFromDeviceAsync();
                                 await BLEservice.ShowToastAsync("Succes.", $"{BLEservice.DeviceInterface.Name} has been disconnected.");
+                                BleConnected = false;
                             }
                             #endregion another device
                         }
@@ -335,6 +358,7 @@ namespace Bssure.ViewModels
                         {
                             if (EKGCharacteristic.CanUpdate)
                             {
+                                BleConnected= true;
                                 Debug.WriteLine($"Found service: {EKGservice.Device.Name}");
 
                                 #region save device id to storage
