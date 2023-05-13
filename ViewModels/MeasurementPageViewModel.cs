@@ -137,6 +137,9 @@ namespace Bssure.ViewModels
         {
             System.Threading.Thread.Sleep(100);
             mqttService = mQTTService;
+            bleService = ble;
+
+
             OnSetDefaultValuesClicked();
             LoadUserValues();
             StartBtnText = StartText;
@@ -145,7 +148,6 @@ namespace Bssure.ViewModels
             StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
-            bleService = ble;
         }
 
         string UserID = "Unknown";
