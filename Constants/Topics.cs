@@ -9,7 +9,8 @@ namespace Bssure.Constants
     public static class Topics
     {
 
-        private const string pre = "Dev/";
+        private const string pre = "";
+        //private const string pre = "Dev/";
         public const string
 
             Topic_Status_CSSURE = pre+"ECG/Status/CSSURE",
