@@ -10,9 +10,9 @@ namespace Bssure.DTO
     //make this class an observable by inheriting from the INotifyPropertyChanged interface
     public class EKGSampleDTO
     {
-        public sbyte[] RawBytes { get; set; }
-        public DateTimeOffset Timestamp { get; set; }
         public string PatientId { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
+        public sbyte[] RawBytes { get; set; }
 
 
 

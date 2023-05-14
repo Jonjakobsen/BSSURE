@@ -279,6 +279,7 @@ namespace Bssure.ViewModels
                 {
 
                     UserID = await SecureStorage.Default.GetAsync("UserID");
+                    _ = OnSendPersonalMetadataAsync();
                     StartBtnText = StopText;
                     mqttService.StartSending(UserID);
                 }
