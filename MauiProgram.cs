@@ -5,6 +5,7 @@ using Microsoft.Maui.Controls.Hosting;
 using CommunityToolkit.Maui; // Nuget needs to be version 1.2.0 to work, not 5.0.0. Jonsnyegren bruger 2.0.0, og det virker også.
 using Bssure;
 using Bssure.Services;
+using Syncfusion.Maui.Core.Hosting;
 
 namespace Bssure;
 
@@ -19,6 +20,7 @@ public static class MauiProgram
         builder.UseMauiCommunityToolkit();
         builder
 			.UseMauiApp<App>()
+            .ConfigureSyncfusionCore()
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -33,9 +35,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<MainPageViewModel>();
         builder.Services.AddSingleton<MeasurementPage>();
-        builder.Services.AddSingleton<MeasurementPageViewModel>();
-        //builder.Services.AddSingleton<PopUpBLE>();
-        //builder.Services.AddSingleton<PopUpBLEViewModel>();
+        builder.Services.AddSingleton<IMeasurement, MeasurementPageViewModel>();
+        builder.Services.AddSingleton<IDecoder, DecodingByteArray>();
 
 
         //builder.Services.AddSingleton registers a singleton service for the specified type, meaning that only one instance of the service will be created and shared across the entire application.

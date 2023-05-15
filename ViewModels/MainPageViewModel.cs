@@ -19,7 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Maui;
-
+using Bssure.Events;
 
 namespace Bssure.ViewModels
 {
@@ -82,6 +82,7 @@ namespace Bssure.ViewModels
         }
 
         private bool bleConnceted;
+        private readonly IDecoder decoder;
 
         public bool BleConnected
         {
@@ -91,13 +92,12 @@ namespace Bssure.ViewModels
 
 
         public BLEservice BLEservice { get; set; }
+        private bool _measurementIsStarted { get; set; }
 
-
-
-
-        public MainPageViewModel(BLEservice ble, IMQTTService mQTTService) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
+        public MainPageViewModel(BLEservice ble, IMQTTService mQTTService, IDecoder decoder, IMeasurement measurement) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
             mqttService = mQTTService;
+            this.decoder = decoder;
             BLEDisconnectCommand = new RelayCommand(OnBLE_disconnectClicked);
             SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
             LoadUser();
@@ -109,6 +109,7 @@ namespace Bssure.ViewModels
             ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
             ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
             CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
+            measurement.MeasurementStartedEvent += HandleStartMeasurementEvent;
         }
 
         private async void OnBLE_disconnectClicked()
@@ -304,7 +305,7 @@ namespace Bssure.ViewModels
         private async Task ConnectToDeviceCandidateAsync(DeviceCandidate deviceCandidate)
         {
             BLEservice.BleDevice = deviceCandidate;
-            
+
 
             if (!BLEservice.bleInterface.IsOn)
             {
@@ -358,7 +359,7 @@ namespace Bssure.ViewModels
                         {
                             if (EKGCharacteristic.CanUpdate)
                             {
-                                BleConnected= true;
+                                BleConnected = true;
                                 Debug.WriteLine($"Found service: {EKGservice.Device.Name}");
 
                                 #region save device id to storage
@@ -366,7 +367,7 @@ namespace Bssure.ViewModels
                                 await SecureStorage.Default.SetAsync("device_id", $"{BLEservice.DeviceInterface.Id}");
                                 #endregion save device id to storage
 
-                                EKGCharacteristic.ValueUpdated += HeartRateMeasurementCharacteristic_ValueUpdated;
+                                EKGCharacteristic.ValueUpdated += ECGMeasurementCharacteristic_ValueUpdated;
                                 await EKGCharacteristic.StartUpdatesAsync();
                             }
                         }
@@ -415,7 +416,7 @@ namespace Bssure.ViewModels
 
                 await BLEservice.AdapterInterface.DisconnectDeviceAsync(BLEservice.DeviceInterface);
 
-                EKGCharacteristic.ValueUpdated -= HeartRateMeasurementCharacteristic_ValueUpdated;
+                EKGCharacteristic.ValueUpdated -= ECGMeasurementCharacteristic_ValueUpdated;
             }
             catch (Exception ex)
             {
@@ -433,21 +434,33 @@ namespace Bssure.ViewModels
                 //await Shell.Current.GoToAsync("//MainPage", true);
             }
         }
-        //This is the eventhandler that receives raw samples from the device
-        private void HeartRateMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
+
+        private void HandleStartMeasurementEvent(object sender, StartMeasurementEventArgs e)
         {
-            var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
-            sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
-            var time = DateTimeOffset.Now.LocalDateTime;
+            _measurementIsStarted = e.MeasurementIsStarted;
+        }
 
+        //This is the eventhandler that receives raw samples from the device
+        private async void ECGMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
+        {
+            if (_measurementIsStarted == false) //start measurement button has not been clicked yet
+            {
+                return;
+            }
+            else //start measurement button is clicked and text should now be "Stop measurement"
+            {
+                var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
+                sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
+                var time = DateTimeOffset.Now.LocalDateTime;
 
-            //Add the newest sample to the list
-            EKGSampleDTO item = new EKGSampleDTO { RawBytes = bytessigned, Timestamp = time };
-            EKGSamples.Add(item);
+                await Task.Run(() => decoder.DecodeBytes(bytessigned));
 
-            //MQTTService.Publish_RawData(item);
-            _ = sendDataAsync(item);
-            //TODO her skal pushes fra BSSURE til CSSURE
+                //Add the newest sample to the list
+                EKGSampleDTO item = new EKGSampleDTO { RawBytes = bytessigned, Timestamp = time };
+                EKGSamples.Add(item);
+
+                _ = sendDataAsync(item);
+            }
         }
 
         private async Task sendDataAsync(EKGSampleDTO item)

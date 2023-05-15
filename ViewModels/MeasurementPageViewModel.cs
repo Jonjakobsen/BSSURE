@@ -10,10 +10,19 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Bssure.Services;
 using Bssure.DTO;
+using Bssure.Events;
+using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace Bssure.ViewModels
 {
-    public partial class MeasurementPageViewModel : ObservableObject
+    public class ECGGraph //this is not the graph itself, but the data that is used to draw the graph. The x and y, that we bind to in xaml.
+    {
+        public DateTime X { get; set; }
+        public int Y { get; set; }
+    }
+
+    public partial class MeasurementPageViewModel : ObservableObject, IMeasurement
     {
         #region Commands
 
@@ -28,6 +37,7 @@ namespace Bssure.ViewModels
         private readonly string StartText = "Start measurement";
         private readonly string StopText = "Stop measurement";
         private readonly BLEservice bleService;
+        private readonly IDecoder decoder;
 
         #endregion
 
@@ -131,23 +141,47 @@ namespace Bssure.ViewModels
             }
         }
         public IMQTTService mqttService { get; }
+        public event EventHandler<StartMeasurementEventArgs> MeasurementStartedEvent;
+
+        private List<int> bufferForGraph = new List<int>();
+
+        private ObservableCollection<ECGGraph> _ecgSamples;
+        public ObservableCollection<ECGGraph> ECGSamples
+        {
+            get => _ecgSamples;
+            set => SetProperty(ref _ecgSamples, value);
+        }
+
+        private string _ecgGraphTitle;
+        public string ECGGraphTitle
+        {
+            get => _ecgGraphTitle;
+            set => SetProperty(ref _ecgGraphTitle, value);
+        }
+
         #endregion
 
-        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice ble)
+        public MeasurementPageViewModel(IMQTTService mQTTService, BLEservice ble, IDecoder decoder)
         {
             System.Threading.Thread.Sleep(100);
             mqttService = mQTTService;
             bleService = ble;
-
-
+            this.decoder = decoder;
             OnSetDefaultValuesClicked();
             LoadUserValues();
             StartBtnText = StartText;
+            ECGSamples = new ObservableCollection<ECGGraph>();
 
             SaveAllParametersCommand = new RelayCommand(SaveUserValues);
-            StartMeasurementCommand = new RelayCommand(Onstart_measurementClicked);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
             BackToMainpageCommand = new RelayCommand(OnHomeClicked);
+            StartMeasurementCommand = new RelayCommand(OnStartMeasurementClicked);
+            decoder.ECGDataReceivedEvent += HandleECGDataReceivedEvent;
+        }
+
+        public MeasurementPageViewModel()
+        {
+
         }
 
         string UserID = "Unknown";
@@ -159,7 +193,7 @@ namespace Bssure.ViewModels
             UserID = await SecureStorage.Default.GetAsync("UserID");
             string email = await SecureStorage.Default.GetAsync("Email");
 
-            UserDataDTO userDataDTO = new UserDataDTO { CSINormMax = csi, ModCSINormMax = modcsi, UserId = UserID , Emails= new string[] { email } };
+            UserDataDTO userDataDTO = new UserDataDTO { CSINormMax = csi, ModCSINormMax = modcsi, UserId = UserID, Emails = new string[] { email } };
 
             mqttService.PublishMetaData(userDataDTO);
         }
@@ -263,7 +297,61 @@ namespace Bssure.ViewModels
             }
         }
 
-        async private void Onstart_measurementClicked()
+        protected virtual void OnStartMeasurementEvent(StartMeasurementEventArgs e) //when measurement button is clicked event is fired
+        {
+            MeasurementStartedEvent?.Invoke(this, e);
+        }
+
+        object _lockECGSamples = new object();
+        object _lockECG = new object();
+
+        private void HandleECGDataReceivedEvent(object sender, ECGDataReceivedEventArgs e)
+        {
+            lock (_lockECG)
+            {
+
+                ECGGraphTitle = nameof(e.ECGBatch.ECGChannel1).ToString();
+                try
+                {
+                    //foreach (var sample in e.ECGBatch.ECGChannel1) //loop through the received ECG Batch
+                    //{
+                    //    bufferForGraph.Add(sample);
+                    //}
+                    try
+                    {
+                        bufferForGraph.Add(e.ECGBatch.ECGChannel1[0]);
+                    }
+                    catch (Exception bufferEx)
+                    {
+                        Debug.WriteLine(bufferEx.Message + "Adding to buffer failed in MeasurementPageViewModel");
+                    }
+
+                    //buffer for 3 seconds, so that graph isnt overpopulated
+                    if (bufferForGraph.Count() <= 63) //check if there is 756 samples in the buffer ECGSamples
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        lock (_lockECGSamples)
+                        {
+                            ECGSamples.Clear();
+                        }
+                        foreach (int ecgSample in bufferForGraph)
+                        {
+                            ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = (int)ecgSample }); //Take one of the 12 samples to not overpopulate graph
+                        }
+                        bufferForGraph.Clear(); //Clear the collection, to get a new buffer for next 3 sec.
+                    }
+                }
+                catch (InvalidCastException ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+            }
+        }
+
+        async private void OnStartMeasurementClicked()
         {
 
             if (StartBtnText == StartText)
@@ -277,7 +365,7 @@ namespace Bssure.ViewModels
                 }
                 else
                 {
-
+                    OnStartMeasurementEvent(new StartMeasurementEventArgs { MeasurementIsStarted = true });
                     UserID = await SecureStorage.Default.GetAsync("UserID");
                     _ = OnSendPersonalMetadataAsync();
                     StartBtnText = StopText;
@@ -288,6 +376,7 @@ namespace Bssure.ViewModels
             {
                 StartBtnText = StartText;
                 //Todo:Her stoppes målingen
+                OnStartMeasurementEvent(new StartMeasurementEventArgs { MeasurementIsStarted = false });
                 mqttService.StopSending();
             }
 

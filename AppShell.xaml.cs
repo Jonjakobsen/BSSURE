@@ -9,7 +9,6 @@ public partial class AppShell : Shell
 		InitializeComponent();
 		Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
 		Routing.RegisterRoute(nameof(MeasurementPage), typeof(MeasurementPage));
-
-
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MTg4ODcxN0AzMjMxMmUzMTJlMzMzNURLdUFIYWpNNFVxTjV4MFYrSTkxOFM2Z2V2aGdKYkJSOVZXYmhjY2h2ZkU9");
     }
 }
