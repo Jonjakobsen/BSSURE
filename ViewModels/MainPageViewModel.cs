@@ -96,20 +96,28 @@ namespace Bssure.ViewModels
 
         public MainPageViewModel(BLEservice ble, IMQTTService mQTTService, IDecoder decoder, IMeasurement measurement) //Dependency injection of the BLEservice is necessary in all viewmodel classes. Passed globally from singleton in mauiprogram.cs
         {
-            mqttService = mQTTService;
-            this.decoder = decoder;
-            BLEDisconnectCommand = new RelayCommand(OnBLE_disconnectClicked);
-            SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
-            LoadUser();
+
+            try
+            {
+                mqttService = mQTTService;
+                this.decoder = decoder;
+                BLEDisconnectCommand = new RelayCommand(OnBLE_disconnectClicked);
+                SubmitUserIDCommand = new RelayCommand(OnSubmitClicked);
+                LoadUser();
 
 
-            BLEservice = ble;
-            ListOfDeviceCandidates = new ObservableCollection<DeviceCandidate>();
-            //Her bindes kommandoer til CommunityMVVM toolkit Asyncrelay, så de kan kaldes asynkront
-            ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
-            ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
-            CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
-            measurement.MeasurementStartedEvent += HandleStartMeasurementEvent;
+                BLEservice = ble;
+                ListOfDeviceCandidates = new ObservableCollection<DeviceCandidate>();
+                //Her bindes kommandoer til CommunityMVVM toolkit Asyncrelay, så de kan kaldes asynkront
+                ConnectToDeviceCandidateAsyncCommand = new AsyncRelayCommand<DeviceCandidate>(async (deviceCandidate) => await ConnectToDeviceCandidateAsync(deviceCandidate));
+                ScanNearbyDevicesAsyncCommand = new AsyncRelayCommand(ScanDevicesAsync);
+                CheckBluetoothAvailabilityAsyncCommand = new AsyncRelayCommand(CheckBluetoothAvailabilityAsync);
+                measurement.MeasurementStartedEvent += HandleStartMeasurementEvent;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error during Main Page View Model Creation: " + ex);
+            }
         }
 
         private async void OnBLE_disconnectClicked()
@@ -203,19 +211,25 @@ namespace Bssure.ViewModels
 
         async Task ScanDevicesAsync()
         {
-            Thread thread1 = new Thread(ScanThreaded);
-            thread1.Start();
+            await Task.Run(() =>
+            {
+                Thread thread1 = new Thread(ScanThreaded);
+                thread1.Start();
+            });
         }
 
         public async void ScanThreaded()
         {
-            BleNotScaning = textScanning;
-            if (!BLEservice.bleInterface.IsAvailable)
+
+            try
             {
-                Debug.WriteLine($"Bluetooth is missing.");
-                await Shell.Current.DisplayAlert($"Bluetooth", $"Bluetooth is missing.", "OK");
-                return;
-            }
+                BleNotScaning = textScanning;
+                if (!BLEservice.bleInterface.IsAvailable)
+                {
+                    Debug.WriteLine($"Bluetooth is missing.");
+                    await Shell.Current.DisplayAlert($"Bluetooth", $"Bluetooth is missing.", "OK");
+                    return;
+                }
 
 #if ANDROID
             PermissionStatus permissionStatus = await BLEservice.CheckBluetoothPermissions();
@@ -232,47 +246,52 @@ namespace Bssure.ViewModels
 #elif WINDOWS
 #endif
 
-            try
-            {
-                if (!BLEservice.bleInterface.IsOn)
+                try
                 {
-                    await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn Bluetooth on and try again.", "OK");
-                    return;
+                    if (!BLEservice.bleInterface.IsOn)
+                    {
+                        await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn Bluetooth on and try again.", "OK");
+                        return;
+                    }
+
+
+
+                    List<DeviceCandidate> newlyFoundDevices = await BLEservice.ScanForDevicesAsync();
+
+                    if (newlyFoundDevices.Count == 0)
+                    {
+                        await BLEservice.ShowToastAsync("BLE Error", $"Unable to find nearby Bluetooth LE devices. Try again.");
+                    }
+
+                    if (ListOfDeviceCandidates.Count > 0) // clear the old global list
+                    {
+                        ListOfDeviceCandidates.Clear();
+                    }
+
+
+                    foreach (var deviceCandidate in newlyFoundDevices) //Fill the global list with newly found devices
+                    {
+                        ListOfDeviceCandidates.Add(deviceCandidate); //add the found devices to the global list for the viewmodel
+                    }
+                    //TODO: Den connecter direkte til det første device den finder, bør laves om så man selv skal udvælge det
+                    //if (ListOfDeviceCandidates.Count >= 1)
+                    //{
+                    //    await ConnectToDeviceCandidateAsync(ListOfDeviceCandidates.First());
+                    //}
+
+
                 }
-
-
-
-                List<DeviceCandidate> newlyFoundDevices = await BLEservice.ScanForDevicesAsync();
-
-                if (newlyFoundDevices.Count == 0)
+                catch (Exception ex)
                 {
-                    await BLEservice.ShowToastAsync("BLE Error", $"Unable to find nearby Bluetooth LE devices. Try again.");
+                    Debug.WriteLine($"Unable to get nearby Bluetooth LE devices: {ex.Message}");
+                    await Shell.Current.DisplayAlert($"Unable to get nearby Bluetooth LE devices", $"{ex.Message}.", "OK");
                 }
-
-                if (ListOfDeviceCandidates.Count > 0) // clear the old global list
-                {
-                    ListOfDeviceCandidates.Clear();
-                }
-
-
-                foreach (var deviceCandidate in newlyFoundDevices) //Fill the global list with newly found devices
-                {
-                    ListOfDeviceCandidates.Add(deviceCandidate); //add the found devices to the global list for the viewmodel
-                }
-                //TODO: Den connecter direkte til det første device den finder, bør laves om så man selv skal udvælge det
-                //if (ListOfDeviceCandidates.Count >= 1)
-                //{
-                //    await ConnectToDeviceCandidateAsync(ListOfDeviceCandidates.First());
-                //}
-
-
+                BleNotScaning = textnotScanning;
             }
-            catch (Exception ex)
+            catch (Exception ex2)
             {
-                Debug.WriteLine($"Unable to get nearby Bluetooth LE devices: {ex.Message}");
-                await Shell.Current.DisplayAlert($"Unable to get nearby Bluetooth LE devices", $"{ex.Message}.", "OK");
+                Debug.WriteLine($"Bssure Error while getting Bluetooth LE devices: {ex2.Message}");
             }
-            BleNotScaning = textnotScanning;
         }
         async Task CheckBluetoothAvailabilityAsync()
         {
@@ -304,80 +323,89 @@ namespace Bssure.ViewModels
         }
         private async Task ConnectToDeviceCandidateAsync(DeviceCandidate deviceCandidate)
         {
-            BLEservice.BleDevice = deviceCandidate;
-
-
-            if (!BLEservice.bleInterface.IsOn)
-            {
-                await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn Bluetooth on and try again.", "OK");
-                return;
-            }
-
-            if (BLEservice.AdapterInterface.IsScanning)
-            {
-                await BLEservice.ShowToastAsync("Bluetooth adapter is scanning.", $"Try again.");
-                return;
-            }
 
             try
             {
+                BLEservice.BleDevice = deviceCandidate;
 
-                if (BLEservice.DeviceInterface != null)
+
+                if (!BLEservice.bleInterface.IsOn)
                 {
+                    await Shell.Current.DisplayAlert($"Bluetooth is not on", $"Please turn Bluetooth on and try again.", "OK");
+                    return;
+                }
+
+                if (BLEservice.AdapterInterface.IsScanning)
+                {
+                    await BLEservice.ShowToastAsync("Bluetooth adapter is scanning.", $"Try again.");
+                    return;
+                }
+
+                try
+                {
+
+                    if (BLEservice.DeviceInterface != null)
+                    {
+                        if (BLEservice.DeviceInterface.State == DeviceState.Connected)
+                        {
+                            if (BLEservice.DeviceInterface.Id.Equals(BLEservice.BleDevice.Id))
+                            {
+                                await BLEservice.ShowToastAsync("Connection error.", $"{BLEservice.DeviceInterface.Name} is already connected.");
+                                return;
+                            }
+
+                            if (BLEservice.BleDevice != null)
+                            {
+                                #region another device
+                                if (!BLEservice.DeviceInterface.Id.Equals(BLEservice.BleDevice.Id))
+                                {
+                                    Debug.WriteLine($"Disconnected: {BLEservice.BleDevice.Name}");
+                                    await DisconnectFromDeviceAsync();
+                                    await BLEservice.ShowToastAsync("Succes.", $"{BLEservice.DeviceInterface.Name} has been disconnected.");
+                                    BleConnected = false;
+                                }
+                                #endregion another device
+                            }
+                        }
+                    }
+
+                    BLEservice.DeviceInterface = await BLEservice.AdapterInterface.ConnectToKnownDeviceAsync(BLEservice.BleDevice.Id);
+
                     if (BLEservice.DeviceInterface.State == DeviceState.Connected)
                     {
-                        if (BLEservice.DeviceInterface.Id.Equals(BLEservice.BleDevice.Id))
+                        EKGservice = await BLEservice.DeviceInterface.GetServiceAsync(CortriumUUIDs.BLE_SERVICE_UUID_C3TESTER[0]);
+                        if (EKGservice != null)
                         {
-                            await BLEservice.ShowToastAsync("Connection error.", $"{BLEservice.DeviceInterface.Name} is already connected.");
-                            return;
-                        }
-
-                        if (BLEservice.BleDevice != null)
-                        {
-                            #region another device
-                            if (!BLEservice.DeviceInterface.Id.Equals(BLEservice.BleDevice.Id))
+                            EKGCharacteristic = await EKGservice.GetCharacteristicAsync(CortriumUUIDs.BLE_CHARACTERISTIC_UUID_Rx[0]); //0 is because of array, want the first one eventhough there is only one
+                            if (EKGCharacteristic != null)
                             {
-                                Debug.WriteLine($"Disconnected: {BLEservice.BleDevice.Name}");
-                                await DisconnectFromDeviceAsync();
-                                await BLEservice.ShowToastAsync("Succes.", $"{BLEservice.DeviceInterface.Name} has been disconnected.");
-                                BleConnected = false;
+                                if (EKGCharacteristic.CanUpdate)
+                                {
+                                    BleConnected = true;
+                                    Debug.WriteLine($"Found service: {EKGservice.Device.Name}");
+
+                                    #region save device id to storage
+                                    await SecureStorage.Default.SetAsync("device_name", $"{BLEservice.DeviceInterface.Name}");
+                                    await SecureStorage.Default.SetAsync("device_id", $"{BLEservice.DeviceInterface.Id}");
+                                    #endregion save device id to storage
+
+                                    EKGCharacteristic.ValueUpdated += ECGMeasurementCharacteristic_ValueUpdated;
+                                    await EKGCharacteristic.StartUpdatesAsync();
+                                }
                             }
-                            #endregion another device
                         }
                     }
                 }
-
-                BLEservice.DeviceInterface = await BLEservice.AdapterInterface.ConnectToKnownDeviceAsync(BLEservice.BleDevice.Id);
-
-                if (BLEservice.DeviceInterface.State == DeviceState.Connected)
+                catch (Exception ex)
                 {
-                    EKGservice = await BLEservice.DeviceInterface.GetServiceAsync(CortriumUUIDs.BLE_SERVICE_UUID_C3TESTER[0]);
-                    if (EKGservice != null)
-                    {
-                        EKGCharacteristic = await EKGservice.GetCharacteristicAsync(CortriumUUIDs.BLE_CHARACTERISTIC_UUID_Rx[0]); //0 is because of array, want the first one eventhough there is only one
-                        if (EKGCharacteristic != null)
-                        {
-                            if (EKGCharacteristic.CanUpdate)
-                            {
-                                BleConnected = true;
-                                Debug.WriteLine($"Found service: {EKGservice.Device.Name}");
-
-                                #region save device id to storage
-                                await SecureStorage.Default.SetAsync("device_name", $"{BLEservice.DeviceInterface.Name}");
-                                await SecureStorage.Default.SetAsync("device_id", $"{BLEservice.DeviceInterface.Id}");
-                                #endregion save device id to storage
-
-                                EKGCharacteristic.ValueUpdated += ECGMeasurementCharacteristic_ValueUpdated;
-                                await EKGCharacteristic.StartUpdatesAsync();
-                            }
-                        }
-                    }
+                    Debug.WriteLine($"Unable to connect to {BLEservice.BleDevice.Name} {BLEservice.BleDevice.Id}: {ex.Message}.");
+                    await Shell.Current.DisplayAlert($"{BLEservice.BleDevice.Name}", $"Unable to connect to {BLEservice.BleDevice.Name}.", "OK");
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex2)
             {
-                Debug.WriteLine($"Unable to connect to {BLEservice.BleDevice.Name} {BLEservice.BleDevice.Id}: {ex.Message}.");
-                await Shell.Current.DisplayAlert($"{BLEservice.BleDevice.Name}", $"Unable to connect to {BLEservice.BleDevice.Name}.", "OK");
+                Debug.WriteLine($"Error during: ConnectToDeviceCandidateAsync: {ex2.Message}.");
+                //await Shell.Current.DisplayAlert($"{BLEservice.BleDevice.Name}", $"Unable to connect to {BLEservice.BleDevice.Name}.", "OK");
             }
 
         }
@@ -443,23 +471,30 @@ namespace Bssure.ViewModels
         //This is the eventhandler that receives raw samples from the device
         private async void ECGMeasurementCharacteristic_ValueUpdated(object sender, CharacteristicUpdatedEventArgs e)
         {
-            if (_measurementIsStarted == false) //start measurement button has not been clicked yet
+            try
             {
-                return;
+                if (_measurementIsStarted == false) //start measurement button has not been clicked yet
+                {
+                    return;
+                }
+                else //start measurement button is clicked and text should now be "Stop measurement"
+                {
+                    var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
+                    sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
+                    var time = DateTimeOffset.Now.LocalDateTime;
+
+                    await Task.Run(() => decoder.DecodeBytes(bytessigned));
+
+                    //Add the newest sample to the list
+                    EKGSampleDTO item = new EKGSampleDTO { RawBytes = bytessigned, Timestamp = time };
+                    EKGSamples.Add(item);
+
+                    _ = sendDataAsync(item);
+                }
             }
-            else //start measurement button is clicked and text should now be "Stop measurement"
+            catch (Exception ex)
             {
-                var bytes = e.Characteristic.Value;//byte array, with raw data to be sent to CSSURE
-                sbyte[] bytessigned = Array.ConvertAll(bytes, x => unchecked((sbyte)x));
-                var time = DateTimeOffset.Now.LocalDateTime;
-
-                await Task.Run(() => decoder.DecodeBytes(bytessigned));
-
-                //Add the newest sample to the list
-                EKGSampleDTO item = new EKGSampleDTO { RawBytes = bytessigned, Timestamp = time };
-                EKGSamples.Add(item);
-
-                _ = sendDataAsync(item);
+                Debug.WriteLine("heart rate measurement found " + ex);
             }
         }
 
