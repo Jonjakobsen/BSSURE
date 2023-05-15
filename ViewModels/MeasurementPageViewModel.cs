@@ -170,7 +170,6 @@ namespace Bssure.ViewModels
             OnSetDefaultValuesClicked();
             LoadUserValues();
             StartBtnText = StartText;
-            ECGSamples = new ObservableCollection<ECGGraph>();
 
             SaveAllParametersCommand = new RelayCommand(SaveUserValues);
             SetDefaultValuesCommand = new RelayCommand(OnSetDefaultValuesClicked);
@@ -304,49 +303,41 @@ namespace Bssure.ViewModels
 
         object _lockECGSamples = new object();
         object _lockECG = new object();
+        int samplesCounter = 0;
 
         private void HandleECGDataReceivedEvent(object sender, ECGDataReceivedEventArgs e)
         {
             lock (_lockECG)
             {
-
                 ECGGraphTitle = nameof(e.ECGBatch.ECGChannel1).ToString();
-                try
+                //try
+                //{
+                if (ECGSamples.Count >= 42 * 5)
                 {
-                    //foreach (var sample in e.ECGBatch.ECGChannel1) //loop through the received ECG Batch
-                    //{
-                    //    bufferForGraph.Add(sample);
-                    //}
-                    try
+                    lock (_lockECGSamples)
                     {
-                        bufferForGraph.Add(e.ECGBatch.ECGChannel1[0]);
-                    }
-                    catch (Exception bufferEx)
-                    {
-                        Debug.WriteLine(bufferEx.Message + "Adding to buffer failed in MeasurementPageViewModel");
-                    }
-
-                    //buffer for 3 seconds, so that graph isnt overpopulated
-                    if (bufferForGraph.Count() <= 63) //check if there is 756 samples in the buffer ECGSamples
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        lock (_lockECGSamples)
+                        try
                         {
-                            ECGSamples.Clear();
+                            ECGSamples.RemoveAt(0);
+                            ECGSamples.RemoveAt(0);
                         }
-                        foreach (int ecgSample in bufferForGraph)
+                        catch (Exception exp)
                         {
-                            ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = (int)ecgSample }); //Take one of the 12 samples to not overpopulate graph
+                            Debug.WriteLine(exp.Message + ": removing from ECGSamples failed in MeasurementPageViewModel, ECGSamples count: " + ECGSamples.Count);
                         }
-                        bufferForGraph.Clear(); //Clear the collection, to get a new buffer for next 3 sec.
                     }
                 }
-                catch (InvalidCastException ex)
+                try
                 {
-                    Debug.WriteLine(ex.Message);
+                    int ecg1 = (e.ECGBatch.ECGChannel1[0] + e.ECGBatch.ECGChannel1[1] + e.ECGBatch.ECGChannel1[2] + e.ECGBatch.ECGChannel1[3] + e.ECGBatch.ECGChannel1[4] + e.ECGBatch.ECGChannel1[5]) / 6;
+                    int ecg3 = (e.ECGBatch.ECGChannel1[6] + e.ECGBatch.ECGChannel1[7] + e.ECGBatch.ECGChannel1[8] + e.ECGBatch.ECGChannel1[9] + e.ECGBatch.ECGChannel1[10] + e.ECGBatch.ECGChannel1[11]) / 6;
+
+                    ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = ecg1 });
+                    ECGSamples.Add(new ECGGraph() { X = DateTime.Now, Y = ecg3 });
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message + ": Adding to ECGSamples failed in MeasurementPageViewModel, ECGSamples count: " + ECGSamples.Count);
                 }
             }
         }
@@ -365,6 +356,7 @@ namespace Bssure.ViewModels
                 }
                 else
                 {
+                    ECGSamples = new ObservableCollection<ECGGraph>();
                     OnStartMeasurementEvent(new StartMeasurementEventArgs { MeasurementIsStarted = true });
                     UserID = await SecureStorage.Default.GetAsync("UserID");
                     _ = OnSendPersonalMetadataAsync();
