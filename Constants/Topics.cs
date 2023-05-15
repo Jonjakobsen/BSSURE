@@ -13,8 +13,15 @@ namespace Bssure.Constants
         //private const string pre = "Dev/";
         public const string
 
-            Topic_Status_CSSURE = pre+"ECG/Status/CSSURE",
+
             Topic_Status_BSSURE = pre+"ECG/Status/BSSURE",
+            Topic_Version_BSSURE = pre + "ECG/Version/BSSURE",
+
+            Topic_Status_CSSURE = pre + "ECG/Status/CSSURE",
+            Topic_Version_CSSURE = pre + "ECG/Version/CSSURE",
+
+
+
 
 
             Topic_UserData = pre+"ECG/Userdata",

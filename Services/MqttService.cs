@@ -1,6 +1,7 @@
 ﻿using Bssure.Constants;
 using Bssure.CortriumDevice;
 using Bssure.DTO;
+using Cssure.Constants;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -153,6 +154,7 @@ namespace Bssure.Services
 
                     client.Subscribe(new string[] { Topics.Topic_Series_TempToBSSURE }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
                     Publish(Topics.Topic_Status_BSSURE, Encoding.UTF8.GetBytes("Online"));
+                    Publish(Topics.Topic_Version_BSSURE, Encoding.UTF8.GetBytes(VersionHistory.No));
                 }
             }
             catch (Exception)
