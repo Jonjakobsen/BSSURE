@@ -5,11 +5,10 @@ namespace Bssure.Pages;
 [XamlCompilation(XamlCompilationOptions.Skip)]
 public partial class MeasurementPage : ContentPage
 {
-    public MeasurementPage(MeasurementPageViewModel vm)
+    public MeasurementPage(IMeasurement vm)
     {
         InitializeComponent();
-        BindingContext = vm;              
-        
+        BindingContext = vm;
     }
 
 

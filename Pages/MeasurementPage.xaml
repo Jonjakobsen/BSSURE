@@ -7,8 +7,13 @@
              x:DataType="viewmodel:MeasurementPageViewModel"
              xmlns:model="clr-namespace:Bssure.CortriumDevice"
              xmlns:viewmodel="clr-namespace:Bssure.ViewModels"
+             xmlns:chart="clr-namespace:Syncfusion.Maui.Charts;assembly=Syncfusion.Maui.Charts"
              Shell.NavBarIsVisible="false">
 
+
+    <ContentPage.BindingContext>
+        <viewmodel:MeasurementPageViewModel></viewmodel:MeasurementPageViewModel>
+    </ContentPage.BindingContext>
 
 
     <ScrollView>
@@ -33,6 +38,23 @@
                 TextColor="Black"
                 BorderColor="Black" />
 
+            <chart:SfCartesianChart Title="{Binding ECGGraphTitle}">
+
+                <chart:SfCartesianChart.XAxes>
+                    <chart:DateTimeAxis />
+                </chart:SfCartesianChart.XAxes>
+
+                <chart:SfCartesianChart.YAxes>
+                    <chart:NumericalAxis />
+                </chart:SfCartesianChart.YAxes>
+
+                <chart:FastLineSeries 
+                    x:Name="ECGchart"
+                    ItemsSource="{Binding ECGSamples}"
+                    YBindingPath="Y"
+                    XBindingPath="X"/>
+
+            </chart:SfCartesianChart>
 
 
             <StackLayout Spacing="15">
