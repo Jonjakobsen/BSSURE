@@ -25,7 +25,7 @@
 
             <StackLayout>
                 <VerticalStackLayout>
-                    <Label Text="Enter your user ID:" FontSize="20" />
+                    <Label Text="Enter your user ID" FontSize="15" />
                     <Entry x:Name="UserIdEntry" Placeholder="User ID" Text="{Binding UserIdEntry}" />
                 </VerticalStackLayout>
                 <VerticalStackLayout>
@@ -46,23 +46,23 @@
                 StrokeThickness="0"
                 Padding="5,20"
                 StrokeShape="RoundRectangle 20,20,20,20"
-                Background="#2B0B98">
+                Background="White">
                 <VerticalStackLayout Spacing="20" 
             Padding="0,0" VerticalOptions="Start">
-                    <Label Text="Bluetooth option" FontSize="25" HorizontalOptions="Center" />
+                    <Label Text="Bluetooth options" FontSize="15" HorizontalOptions="Center" />
 
                     <Button x:Name="CheckBLE"
 					Command="{Binding CheckBluetoothAvailabilityAsyncCommand}"
 					Text="Check bluetooth availability"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"
-                    BackgroundColor="White"
+                    BackgroundColor="Honeydew"
                     TextColor="Black"/>
 
                     <Button x:Name="ScanNearby"
 					Command="{Binding ScanNearbyDevicesAsyncCommand}"
 					Text="{Binding BleNotScaning}"
 					AbsoluteLayout.LayoutBounds="1,1,100,50"
-                    BackgroundColor="White"
+                    BackgroundColor="Honeydew"
                     TextColor="Black"/>
 
 
